@@ -124,6 +124,8 @@ export type PublicTraveler = {
   travel_personality: string | null;
   interests: string[] | null;
   avatar_url: string | null;
+  lifestyle: Record<string, string> | null;
+  identity_verified: boolean | null;
 };
 
 export type FriendshipState = 'NONE' | 'SENT' | 'RECEIVED' | 'FRIENDS';
@@ -131,13 +133,17 @@ export type FriendshipState = 'NONE' | 'SENT' | 'RECEIVED' | 'FRIENDS';
 export async function fetchTravelers(): Promise<PublicTraveler[]> {
   if (!supabase) return [];
   const { data, error } = await supabase.from('public_profiles')
-    .select('id, full_name, age, city, bio, travel_personality, interests, avatar_url')
+    .select('id, full_name, age, city, bio, travel_personality, interests, avatar_url, lifestyle, identity_verified')
     .order('full_name');
   if (error) {
     console.error('Failed to load travelers', error);
     return [];
   }
-  return (data ?? []) as PublicTraveler[];
+  return (data ?? []).map((profile) => ({
+    ...profile,
+    lifestyle: profile.lifestyle && typeof profile.lifestyle === 'object' ? (profile.lifestyle as Record<string, string>) : null,
+    identity_verified: Boolean(profile.identity_verified),
+  })) as PublicTraveler[];
 }
 
 export async function fetchFriendshipStates(peerIds: string[]): Promise<Record<string, FriendshipState>> {

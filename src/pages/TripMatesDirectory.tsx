@@ -82,6 +82,21 @@ export default function TripMatesDirectory() {
     return meta;
   };
 
+  const lifestyleValue = (person: PublicTraveler | null, key: string, fallback: string) => {
+    if (!person?.lifestyle || typeof person.lifestyle !== 'object') return fallback;
+    const rawValue = person.lifestyle[key];
+    if (typeof rawValue !== 'string' || !rawValue.trim()) return fallback;
+    return rawValue.trim();
+  };
+
+  const lifestyleCards = selected ? [
+    { label: 'Food', value: lifestyleValue(selected, 'food', 'Not set') },
+    { label: 'Smoking', value: lifestyleValue(selected, 'smoking', 'Not set') },
+    { label: 'Drinking', value: lifestyleValue(selected, 'drinking', 'Not set') },
+    { label: 'Party', value: lifestyleValue(selected, 'party', 'Not set') },
+    { label: 'Sleep', value: lifestyleValue(selected, 'sleep', 'Not set') },
+  ] : [];
+
   return (
     <div className="min-h-screen bg-[#FAFAFA] pb-24 pt-16 md:pb-8">
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-6">
@@ -108,8 +123,8 @@ export default function TripMatesDirectory() {
               {selected ? <>
                 {selected.avatar_url ? <img src={selected.avatar_url} alt={`${selected.full_name}'s profile`} className="mb-5 h-64 w-full rounded-2xl bg-slate-100 object-cover object-center" /> : <div className="mb-5 flex h-48 w-full items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-100 to-sky-100 text-7xl font-bold text-emerald-800">{selected.full_name.charAt(0).toUpperCase()}</div>}
                 <div className="flex items-start justify-between gap-3"><div className="flex items-center gap-3">{photo(selected, 'h-12 w-12')}<div><h2 className="text-xl font-bold">{selected.full_name || 'TripMate'}</h2><p className="text-sm text-slate-500">{selected.travel_personality || 'Traveler'}</p></div></div><button type="button" onClick={() => setSelected(null)} aria-label="Close traveler profile" className="rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-50">×</button></div>
-                <div className="mt-3 flex flex-wrap gap-2">{selected.age && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700">{selected.age} years</span>}{selected.city && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700">{selected.city}</span>}{selected.travel_personality && <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">{selected.travel_personality}</span>}<span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-800">✓ Verified</span></div>
-                <div className="mt-5 grid grid-cols-2 gap-3"><div className="rounded-2xl bg-slate-50 p-3"><div className="text-xs text-slate-500">Veg</div><div className="mt-1 font-semibold">No</div></div><div className="rounded-2xl bg-slate-50 p-3"><div className="text-xs text-slate-500">Non-veg</div><div className="mt-1 font-semibold">Yes</div></div><div className="rounded-2xl bg-slate-50 p-3"><div className="text-xs text-slate-500">Smoking</div><div className="mt-1 font-semibold">No</div></div><div className="rounded-2xl bg-slate-50 p-3"><div className="text-xs text-slate-500">Drinking</div><div className="mt-1 font-semibold">Social</div></div><div className="rounded-2xl bg-slate-50 p-3"><div className="text-xs text-slate-500">Party</div><div className="mt-1 font-semibold">Occasional</div></div><div className="rounded-2xl bg-slate-50 p-3"><div className="text-xs text-slate-500">Sleep</div><div className="mt-1 font-semibold">Flexible</div></div></div>
+                <div className="mt-3 flex flex-wrap gap-2">{selected.age && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700">{selected.age} years</span>}{selected.city && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700">{selected.city}</span>}{selected.travel_personality && <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">{selected.travel_personality}</span>}{selected.identity_verified ? <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-800">✓ Verified</span> : <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">Not verified</span>}</div>
+                <div className="mt-5 grid grid-cols-2 gap-3">{lifestyleCards.map((card) => <div key={card.label} className="rounded-2xl bg-slate-50 p-3"><div className="text-xs text-slate-500">{card.label}</div><div className="mt-1 font-semibold">{card.value}</div></div>)}</div>
                 <p className="mt-4 text-sm leading-relaxed text-slate-600">{selected.bio || 'This traveler has not added a profile summary yet.'}</p>
                 <div className="mt-4 flex flex-wrap gap-2">{(selected.interests ?? []).map((interest) => <span key={interest} className="tag text-xs">{interest}</span>)}</div>
                 <div className="mt-6 flex items-center justify-between"><h3 className="font-bold">Public trips</h3><span className="text-xs text-slate-500">{profileTrips.length} created</span></div>
