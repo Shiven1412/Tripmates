@@ -76,7 +76,7 @@ export default function DiscoverPeople() {
     : <div className={`${className} flex items-center justify-center bg-emerald-100 text-4xl font-bold text-emerald-800`}>{profile.name.charAt(0).toUpperCase()}</div>;
 
   return (
-    <div className="pt-16 pb-24 md:pb-8 min-h-screen" style={{ background: '#FAFAFA' }}>
+    <div className="landing-shell pt-16 pb-24 md:pb-8 min-h-screen" style={{ background: '#FAFAFA' }}>
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>

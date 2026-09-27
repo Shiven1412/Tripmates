@@ -24,6 +24,8 @@ const desktopPrimaryNavItems = primaryNavItems.filter((item) => !['Wallet', 'Saf
 const sidebarItems = [
   { label: 'Safety', to: '/safety', icon: '🛡️' },
   { label: 'Wallet', to: '/wallet', icon: '💰' },
+  { label: 'Seasonal', to: '/seasonal-trips', icon: '🌤️' },
+  { label: 'Get Verified', to: '/verification', icon: '✅' },
 ];
 
 const serviceNavItems = [
@@ -109,10 +111,10 @@ export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
         <nav className="app-navbar fixed top-0 left-0 right-0 z-50 glass border-b border-white/40">
           <div className="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
             <NavLink to="/" aria-label="TripMates home" className="flex items-center gap-2 text-decoration-none">
-              <AppLogo dark={!darkMode} />
+              <AppLogo compact dark={!darkMode} className="scale-90" />
             </NavLink>
 
-            <div className="flex items-center gap-2"><button type="button" onClick={() => setDarkMode((mode) => !mode)} className="h-10 w-10 rounded-xl border border-slate-200 bg-white text-lg" aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`}>{darkMode ? '☀️' : '🌙'}</button><button className="btn-outline py-2 px-5 text-sm" onClick={() => navigate('/auth')}>Sign in</button></div>
+            <div className="flex items-center gap-2"><button type="button" onClick={() => setDarkMode((mode) => !mode)} className="h-10 w-10 rounded-xl border border-slate-200 bg-white text-lg" aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`}>{darkMode ? '☀' : '☾'}</button><button className="btn-outline py-2 px-5 text-sm" onClick={() => navigate('/auth')}>Sign in</button></div>
           </div>
         </nav>
       ) : (
@@ -121,7 +123,7 @@ export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
             <div className="mx-auto flex h-16 max-w-[100vw] items-center justify-between px-4">
               <div className="flex items-center gap-3">
                 <NavLink to="/dashboard" aria-label="TripMates dashboard" className="flex items-center gap-2 text-decoration-none">
-                  <AppLogo dark={!darkMode} />
+                  <AppLogo compact dark={!darkMode} className="scale-90" />
                 </NavLink>
               </div>
 
@@ -177,8 +179,8 @@ export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
               </div>
 
               <div className="flex items-center gap-2">
-                <button type="button" onClick={() => setDarkMode((mode) => !mode)} className="theme-toggle h-10 w-10 rounded-xl border border-[#E5E7EB] bg-white text-lg" aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`}>{darkMode ? '☀️' : '🌙'}</button>
-                <button className="btn-primary px-4 py-2 text-sm" onClick={() => navigate('/create-trip')}>
+                <button type="button" onClick={() => setDarkMode((mode) => !mode)} className="theme-toggle h-10 w-10 rounded-xl border border-[#E5E7EB] bg-white text-lg" aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`}>{darkMode ? '☀' : '☾'}</button>
+                <button className="btn-primary hidden px-4 py-2 text-sm md:inline-flex" onClick={() => navigate('/create-trip')}>
                   + Create Trip
                 </button>
 
@@ -192,7 +194,7 @@ export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
                   >
                     ☰
                   </button>
-                  {sidebarOpen && <aside className="nav-menu-surface absolute right-0 top-full z-[70] mt-2 w-52 rounded-[24px] border border-[#E5E7EB] bg-white/95 p-3 shadow-xl backdrop-blur-xl">
+                  {sidebarOpen && <aside className="nav-menu-surface absolute right-0 top-full z-[70] mt-2 max-h-[72vh] w-52 overflow-y-auto rounded-[24px] border border-[#E5E7EB] bg-white/95 p-3 shadow-xl backdrop-blur-xl">
                     <div className="space-y-2">{sidebarItems.map((item) => <NavLink key={item.to} to={item.to} onClick={handleNavClick} className={({ isActive }) => linkClass({ isActive })}><span>{item.icon}</span><span>{item.label}</span></NavLink>)}</div>
                     <div className="mt-3 border-t border-[#F3F4F6] pt-3"><button className="btn-outline w-full justify-center text-sm" onClick={handleLogout}>Logout</button></div>
                   </aside>}
@@ -210,9 +212,9 @@ export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
             </div>
 
             {menuOpen && (
-              <div className="mobile-menu-surface border-t border-gray-100 bg-white px-4 py-4 md:hidden">
+              <div className="mobile-menu-surface max-h-[70vh] overflow-y-auto border-t border-gray-100 bg-white px-4 py-4 md:hidden">
                 <div className="flex flex-col gap-2">
-                  <button type="button" onClick={() => setDarkMode((mode) => !mode)} className="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium text-[#374151]">Theme <span>{darkMode ? '☀️ Light' : '🌙 Dark'}</span></button>
+                  <button type="button" onClick={() => setDarkMode((mode) => !mode)} className="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium text-[#374151]">Theme <span>{darkMode ? '☀ Light' : '☾ Dark'}</span></button>
                   {[...primaryNavItems, ...availableServiceItems].map((item, index) => (
                     <NavLink
                       key={`${item.to}-${item.label}-${index}`}
@@ -245,13 +247,6 @@ export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
                 </NavLink>
               ))}
             </div>
-            <button
-              className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-white font-bold text-xl"
-              style={{ background: '#10B981' }}
-              onClick={() => navigate('/create-trip')}
-            >
-              +
-            </button>
           </div>
         </>
       )}

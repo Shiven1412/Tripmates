@@ -33,7 +33,7 @@ export default function AppLogo({ compact = false, dark = false, className = '' 
       <TripMatesMark size={compact ? 30 : 42} dark={dark} />
       {!compact && (
         <div className="flex flex-col leading-none">
-          <span className="text-base font-bold tracking-tight" style={{ color: textColor }}>TripMates</span>
+          <span className="text-sm font-bold tracking-tight sm:text-base" style={{ color: textColor }}>TripMates</span>
         </div>
       )}
     </div>

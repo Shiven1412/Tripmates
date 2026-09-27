@@ -51,7 +51,7 @@ export default function Landing() {
   }, [user]);
 
   return (
-    <div className="w-full overflow-x-clip bg-slate-50 text-slate-900">
+    <div className="landing-shell w-full overflow-x-clip bg-slate-50 text-slate-900">
       <section className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden">
         {HERO_IMAGES.map((url, i) => (
           <div

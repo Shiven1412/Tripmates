@@ -506,6 +506,9 @@ button, input, textarea, select { font: inherit; }
 
 html.dark { color-scheme: dark; }
 html.dark body { background-color: #0b1220; color: #e2e8f0; }
+html.dark .landing-shell,
+html.dark .landing-shell section,
+html.dark .landing-shell .card-hover,
 html.dark .bg-white,
 html.dark .bg-white\/95,
 html.dark .bg-white\/80,
@@ -516,6 +519,21 @@ html.dark [class*="bg-[#fafafa]"],
 html.dark .bg-slate-50,
 html.dark [style*="background: #FAFAFA"],
 html.dark [style*="background: #fafafa"] { background-color: #111c2e !important; }
+html.dark .landing-shell .text-slate-600,
+html.dark .landing-shell .text-slate-500,
+html.dark .landing-shell .text-slate-400,
+html.dark .landing-shell .text-slate-700,
+html.dark .landing-shell .text-gray-600,
+html.dark .landing-shell .text-gray-500,
+html.dark .landing-shell .text-gray-400 { color: #cbd5e1 !important; }
+html.dark .landing-shell .text-slate-900,
+html.dark .landing-shell .text-slate-800,
+html.dark .landing-shell .text-slate-700,
+html.dark .landing-shell .text-gray-900,
+html.dark .landing-shell .text-gray-800,
+html.dark .landing-shell .text-gray-700 { color: #f8fafc !important; }
+html.dark .landing-shell .tag { background: #1e293b; color: #e2e8f0; }
+html.dark .landing-shell .card-hover { border-color: rgba(148, 163, 184, 0.25); box-shadow: 0 20px 55px rgba(2,6,23,0.35); }
 html.dark .bg-slate-100 { background-color: #1e293b !important; }
 html.dark .bg-slate-200 { background-color: #334155 !important; }
 html.dark .bg-slate-900 { background-color: #263449 !important; }
