@@ -1,0 +1,682 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  TRAVEL_AGENT
+  ADMIN
+}
+
+enum UserType {
+  USER
+  SERVICE_PROVIDER
+  ADMIN
+}
+
+enum ProviderCategory {
+  HOMESTAY
+  HOTEL
+  CAB
+  SCOOTY
+  BIKE
+  GUIDE
+  TREK_ORGANIZER
+  TOUR_OPERATOR
+  PHOTOGRAPHER
+  CAMPING_ORGANIZER
+}
+
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  HIDDEN
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  COMPLETED
+  REFUNDED
+}
+
+enum ProviderVerificationLevel {
+  BASIC
+  VERIFIED
+  PREMIUM
+}
+
+enum ProviderDocumentType {
+  IDENTITY_PROOF
+  BUSINESS_PROOF
+  LICENSE
+  INSURANCE
+}
+
+enum TripStatus {
+  DRAFT
+  PUBLISHED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum TripType {
+  TREKKING
+  BEACH
+  CULTURAL
+  ADVENTURE
+  FOOD
+  DIGITAL_NOMAD
+  MIXED
+}
+
+enum SplitType {
+  EQUAL
+  PERCENTAGE
+  CUSTOM
+}
+
+enum ExpenseStatus {
+  OPEN
+  PARTIALLY_SETTLED
+  SETTLED
+}
+
+model User {
+  id                 String              @id @default(cuid())
+  fullName           String
+  email              String              @unique
+  password           String?
+  profileImage       String?
+  bio                String?
+  city               String?
+  country            String?
+  dateOfBirth        DateTime?
+  gender             String?
+  role               Role                @default(USER)
+  userType           UserType            @default(USER)
+  provider           Provider?
+  providersManaged   Provider[]          @relation("ProviderOwner")
+  verification       Verification?
+  travelPreferences  TravelPreferences?
+  travelPersonality  TravelPersonality?
+  trustScore         TrustScore?
+  compatibility     Compatibility[]
+  tripMemberships    TripMember[]
+  expensesPaid      TripExpense[]       @relation("ExpensePayer")
+  expensesSplit     TripExpenseShare[]
+  tripsOwned        Trip[]              @relation("TripOwner")
+  reviewsWritten     Review[]
+  chatMessages       ChatMessage[]
+  joinRequests       TripJoinRequest[]
+  notifications     Notification[]
+  wallets           UserWallet[]
+  itineraryPlans    ItineraryPlan[]
+  auditLogs          AuditLog[]
+  serviceBookings    ServiceBooking[]    @relation("ProviderCustomer")
+  providerBookings   ServiceBooking[]    @relation("ProviderOwner")
+  providerReviews    ProviderReview[]   @relation("ProviderReviewer")
+  listingReviews     ProviderReview[]   @relation("ProviderListingReviewer")
+  chatsSent         ChatConversation[] @relation("ChatSender")
+  chatsReceived     ChatConversation[] @relation("ChatReceiver")
+}
+
+model Provider {
+  id                  String                     @id @default(cuid())
+  userId              String                     @unique
+  user                User                       @relation(fields: [userId], references: [id])
+  ownerId             String?
+  owner               User?                      @relation("ProviderOwner", fields: [ownerId], references: [id])
+  businessName        String
+  description         String?
+  profileImage        String?
+  coverImage          String?
+  category            ProviderCategory
+  location            String?
+  city                String?
+  country             String?
+  languages           String[]                   @default([])
+  experienceYears     Int?                       @default(0)
+  verificationLevel   ProviderVerificationLevel  @default(BASIC)
+  trustScore          Int                        @default(0)
+  profileStrength     Int                        @default(0)
+  status              String                     @default("PENDING")
+  isFeatured          Boolean                    @default(false)
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  listings            ServiceListing[]
+  bookings            ServiceBooking[]
+  reviews             ProviderReview[]
+  documentRecords     ProviderDocuments[]
+  verificationData    ProviderVerification?
+  availability        ProviderAvailability[]
+  earnings            ProviderEarnings[]
+  portfolios         ProviderPortfolio[]
+  locations           ProviderLocation[]
+  analytics           ProviderAnalytics[]
+  conversations       ChatConversation[]
+}
+
+model ServiceListing {
+  id                 String            @id @default(cuid())
+  providerId         String
+  provider           Provider          @relation(fields: [providerId], references: [id])
+  title              String
+  description        String?
+  category           ProviderCategory
+  status             ListingStatus     @default(DRAFT)
+  pricePerNight      Decimal?
+  pricePerDay        Decimal?
+  pricePerTrip       Decimal?
+  currency           String            @default("INR")
+  featured           Boolean           @default(false)
+  location           String?
+  tags               String[]          @default([])
+  amenities          String[]          @default([])
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  bookings           ServiceBooking[]
+  availability       ProviderAvailability[]
+}
+
+model ServiceBooking {
+  id             String        @id @default(cuid())
+  listingId      String
+  listing        ServiceListing @relation(fields: [listingId], references: [id])
+  providerId     String
+  provider       Provider      @relation(fields: [providerId], references: [id])
+  travelerId     String
+  traveler       User          @relation("ProviderCustomer", fields: [travelerId], references: [id])
+  ownerId        String?
+  owner          User?         @relation("ProviderOwner", fields: [ownerId], references: [id])
+  status         BookingStatus @default(PENDING)
+  amount         Decimal       @default(0)
+  currency       String        @default("INR")
+  startDate      DateTime?
+  endDate        DateTime?
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  transactions   BookingTransaction[]
+}
+
+model ProviderReview {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    Provider @relation(fields: [providerId], references: [id])
+  listingId   String?
+  reviewerId  String
+  reviewer    User     @relation("ProviderReviewer", fields: [reviewerId], references: [id])
+  rating      Int      @default(5)
+  comment     String?
+  photos      String[] @default([])
+  createdAt   DateTime @default(now())
+}
+
+model ProviderAvailability {
+  id          String          @id @default(cuid())
+  providerId  String
+  provider    Provider        @relation(fields: [providerId], references: [id])
+  listingId   String?
+  listing     ServiceListing? @relation(fields: [listingId], references: [id])
+  date        DateTime
+  available   Boolean         @default(true)
+  price       Decimal?
+  notes       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model ProviderEarnings {
+  id            String   @id @default(cuid())
+  providerId    String
+  provider      Provider @relation(fields: [providerId], references: [id])
+  bookingId     String?
+  amount        Decimal  @default(0)
+  platformFee   Decimal  @default(0)
+  netAmount     Decimal  @default(0)
+  status        String   @default("PENDING")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ProviderDocuments {
+  id           String                @id @default(cuid())
+  providerId   String
+  provider     Provider              @relation(fields: [providerId], references: [id])
+  type         ProviderDocumentType
+  label        String
+  url          String
+  verified     Boolean              @default(false)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+}
+
+model ProviderVerification {
+  id                String                    @id @default(cuid())
+  providerId        String                    @unique
+  provider          Provider                  @relation(fields: [providerId], references: [id])
+  identityVerified  Boolean                   @default(false)
+  businessVerified  Boolean                   @default(false)
+  licenseVerified   Boolean                   @default(false)
+  insuranceVerified Boolean                   @default(false)
+  status            VerificationStatus        @default(PENDING)
+  level             ProviderVerificationLevel  @default(BASIC)
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+}
+
+model ProviderPortfolio {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    Provider @relation(fields: [providerId], references: [id])
+  title       String
+  description String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+}
+
+model ProviderLocation {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    Provider @relation(fields: [providerId], references: [id])
+  latitude    Float
+  longitude   Float
+  address     String?
+  city        String?
+  country     String?
+  radiusKm    Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProviderAnalytics {
+  id             String   @id @default(cuid())
+  providerId     String
+  provider       Provider @relation(fields: [providerId], references: [id])
+  profileViews   Int      @default(0)
+  bookings       Int      @default(0)
+  revenue        Decimal  @default(0)
+  conversionRate Float    @default(0)
+  ratings        Float    @default(0)
+  responseTime   Int      @default(0)
+  date           DateTime @default(now())
+}
+
+model ChatConversation {
+  id            String   @id @default(cuid())
+  providerId    String
+  provider      Provider @relation(fields: [providerId], references: [id])
+  travelerId    String
+  traveler      User     @relation("ChatSender", fields: [travelerId], references: [id])
+  lastMessage   String?
+  readReceipt   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model BookingTransaction {
+  id          String         @id @default(cuid())
+  bookingId   String
+  booking     ServiceBooking @relation(fields: [bookingId], references: [id])
+  amount      Decimal
+  paymentId   String?
+  status      String         @default("PENDING")
+  providerFee Decimal        @default(0)
+  createdAt   DateTime       @default(now())
+}
+
+model Verification {
+  id                  String               @id @default(cuid())
+  userId              String               @unique
+  user                User                 @relation(fields: [userId], references: [id])
+  aadhaarNumber       String?
+  aadhaarVerified     Boolean              @default(false)
+  selfieVerified      Boolean              @default(false)
+  phoneVerified       Boolean              @default(false)
+  verificationStatus  VerificationStatus   @default(PENDING)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+}
+
+model TravelPreferences {
+  id                     String   @id @default(cuid())
+  userId                 String   @unique
+  user                   User     @relation(fields: [userId], references: [id])
+  budgetType             String?
+  travelStyle            String?
+  smoking                String?
+  drinking               String?
+  partying               String?
+  accommodationPreference String?
+  sleepSchedule          String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model TravelPersonality {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id])
+  personalityType  String?
+  adventureScore   Int      @default(0)
+  socialScore      Int      @default(0)
+  luxuryScore      Int      @default(0)
+  cultureScore     Int      @default(0)
+  foodieScore      Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model TrustScore {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id])
+  currentScore   Int      @default(0)
+  reportsCount   Int      @default(0)
+  completedTrips Int      @default(0)
+  reviewsCount   Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Trip {
+  id               String        @id @default(cuid())
+  ownerId          String
+  owner            User          @relation("TripOwner", fields: [ownerId], references: [id])
+  destination      String
+  title            String
+  description      String
+  startDate        DateTime
+  endDate          DateTime
+  budget           Decimal
+  tripType         TripType      @default(MIXED)
+  maxMembers       Int
+  status           TripStatus    @default(DRAFT)
+  imageUrl         String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  members          TripMember[]
+  expenses         TripExpense[]
+  wallet           TripWallet?
+  reviews          Review[]
+  chatMessages     ChatMessage[]
+  suggestions      TripSuggestion[]
+  itineraryPlans   ItineraryPlan[]
+  joinRequests     TripJoinRequest[]
+}
+
+model TripMember {
+  id        String   @id @default(cuid())
+  tripId    String
+  trip      Trip     @relation(fields: [tripId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  role      String   @default("MEMBER")
+  joinedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tripId, userId])
+}
+
+model TripExpense {
+  id          String            @id @default(cuid())
+  tripId      String
+  trip        Trip              @relation(fields: [tripId], references: [id])
+  description String
+  amount      Decimal
+  payerId     String
+  payer       User              @relation("ExpensePayer", fields: [payerId], references: [id])
+  splitType   SplitType         @default(EQUAL)
+  status      ExpenseStatus     @default(OPEN)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  shares      TripExpenseShare[]
+}
+
+model TripExpenseShare {
+  id         String       @id @default(cuid())
+  expenseId  String
+  expense    TripExpense  @relation(fields: [expenseId], references: [id])
+  userId     String
+  user       User         @relation(fields: [userId], references: [id])
+  amount     Decimal
+  percentage Float?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+model TripWallet {
+  id         String   @id @default(cuid())
+  tripId     String   @unique
+  trip       Trip     @relation(fields: [tripId], references: [id])
+  balance    Decimal  @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model UserWallet {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  balance    Decimal  @default(0)
+  currency   String   @default("INR")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  tripId      String
+  trip        Trip     @relation(fields: [tripId], references: [id])
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  rating      Int
+  reviewText  String
+  createdAt   DateTime @default(now())
+}
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  tripId     String
+  trip       Trip     @relation(fields: [tripId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  message    String
+  sender     String?
+  createdAt  DateTime @default(now())
+}
+
+model Compatibility {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id])
+  matchedUserId     String
+  compatibilityScore Int
+  badge             String?
+  breakdown        Json?
+  mismatchAreas     Json?
+  radarData         String?
+  createdAt         DateTime @default(now())
+
+  @@index([userId, matchedUserId])
+  @@index([compatibilityScore])
+}
+
+model TrustScore {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id])
+  score              Int      @default(0)
+  trustLevel         String   @default("NEW")
+  aadhaarVerified    Boolean  @default(false)
+  faceVerified       Boolean  @default(false)
+  phoneVerified      Boolean  @default(false)
+  reportsReceived    Int      @default(0)
+  tripNoShows        Int      @default(0)
+  fraudReports       Int      @default(0)
+  completedTrips     Int      @default(0)
+  positiveReviews    Int      @default(0)
+  fiveStarReviews    Int      @default(0)
+  accountAgeMonths   Int      @default(0)
+  lastComputedAt     DateTime @default(now())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([score])
+}
+
+model ProviderRank {
+  id                 String   @id @default(cuid())
+  providerId         String   @unique
+  rankingScore       Int      @default(0)
+  rankingTier        String   @default("STANDARD")
+  averageRating      Float    @default(0)
+  bookingsCompleted  Int      @default(0)
+  responseTimeMinutes Int     @default(0)
+  trustScore         Int      @default(0)
+  profileCompleteness Int      @default(0)
+  recentActivity     Int      @default(0)
+  metadata           Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([rankingScore])
+  @@index([providerId])
+}
+
+model DestinationRecommendation {
+  id               String   @id @default(cuid())
+  userId           String?
+  month            Int
+  budget           String?
+  tripType         String?
+  travelPersonality String?
+  destination      String
+  score            Int      @default(0)
+  reasons          Json?
+  createdAt        DateTime @default(now())
+
+  @@index([month, destination])
+  @@index([userId])
+}
+
+model UserRecommendation {
+  id               String   @id @default(cuid())
+  userId           String
+  recommendedUserId String
+  score            Int      @default(0)
+  reasons          Json?
+  filters          Json?
+  createdAt        DateTime @default(now())
+
+  @@index([userId, score])
+  @@index([recommendedUserId])
+}
+
+model TravelPersonality {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  personality      String
+  score            Int      @default(0)
+  answers          Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([personality, score])
+}
+
+model Hotel {
+  id        String   @id @default(cuid())
+  name      String
+  city      String
+  price     Decimal
+  rating    Float
+  imageUrl  String?
+  createdAt DateTime @default(now())
+}
+
+model CabRental {
+  id           String   @id @default(cuid())
+  vehicle      String
+  pricePerDay  Decimal
+  rating       Float?
+  createdAt    DateTime @default(now())
+}
+
+model ScootyRental {
+  id           String   @id @default(cuid())
+  vehicle      String
+  pricePerDay  Decimal
+  rating       Float?
+  deposit      Decimal?
+  createdAt    DateTime @default(now())
+}
+
+model TripSuggestion {
+  id          String   @id @default(cuid())
+  tripId      String?
+  trip        Trip?    @relation(fields: [tripId], references: [id])
+  season      String
+  destination String
+  createdAt   DateTime @default(now())
+}
+
+model ItineraryPlan {
+  id          String   @id @default(cuid())
+  tripId      String
+  trip        Trip     @relation(fields: [tripId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  description String
+  payload     Json
+  createdAt   DateTime @default(now())
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  type        String
+  title       String
+  message     String
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model TripJoinRequest {
+  id           String   @id @default(cuid())
+  tripId       String
+  trip         Trip     @relation(fields: [tripId], references: [id])
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  action      String
+  entity      String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+}

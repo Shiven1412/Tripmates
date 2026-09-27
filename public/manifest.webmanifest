@@ -1,0 +1,19 @@
+{
+  "name": "TripMates",
+  "short_name": "TripMates",
+  "description": "TripMates connects travelers who match your style, budget, and destination goals.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#111111",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

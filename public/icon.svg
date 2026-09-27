@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">TripMates</title>
+  <desc id="desc">TripMates app icon with a stylized travel mark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#0ea5e9"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="#111827"/>
+  <circle cx="256" cy="256" r="168" fill="url(#bg)" opacity="0.2"/>
+  <path d="M164 326c18-57 56-96 92-116l34 38c-16 11-35 29-52 52l2 16h-76Zm95-111c42-32 84-53 121-63l-26 63c-31 10-60 31-89 62l-6-62Zm-48 163h196l-38 48c-12 15-31 23-51 23H220c-23 0-43-10-55-28l-15-32h-50c-18 0-34-15-34-34 0-19 16-34 34-34h111l27 27h125l13-21c8-12 20-19 34-19h18c17 0 30 14 30 30 0 16-13 30-30 30h-13c-8 0-16 4-21 11l-27 41H233l-22-22Z" fill="#ffffff"/>
+  <path d="M203 134l39 28-29 51-52-27 42-52Zm113 7l40 30-24 50-57-30 41-50Zm-67 155h34v35h-34z" fill="#ecfeff" opacity="0.9"/>
+</svg>
