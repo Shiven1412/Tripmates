@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { signInWithEmail, signUpWithEmail, useCurrentUser } from '../lib/auth';
+import { hydrateCurrentUser, signInWithEmail, signUpWithEmail, useCurrentUser } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 
 const CAROUSEL_IMAGES = [
@@ -21,10 +21,15 @@ export default function Auth() {
   const [isStartingGoogleAuth, setIsStartingGoogleAuth] = useState(false);
 
   useEffect(() => {
-    if (currentUser) {
-      const destination = currentUser.onboardingComplete ? '/dashboard' : '/onboarding';
+    if (!currentUser) return;
+
+    const syncDestination = async () => {
+      const hydratedUser = await hydrateCurrentUser(currentUser);
+      const destination = hydratedUser.onboardingComplete ? '/dashboard' : '/onboarding';
       navigate(destination, { replace: true });
-    }
+    };
+
+    void syncDestination();
   }, [currentUser, navigate]);
 
   const handleGoogleSignIn = async () => {
@@ -36,7 +41,7 @@ export default function Auth() {
     setIsStartingGoogleAuth(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/onboarding` },
+      options: { redirectTo: `${window.location.origin}/auth` },
     });
     if (error) {
       setAuthError(error.message);
@@ -167,13 +172,13 @@ export default function Auth() {
             {mode === 'signup' && (
               <div>
                 <label className="block text-sm font-medium mb-2 text-slate-200">Full Name</label>
-                <input type="text" placeholder="Your name" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full px-4 py-3.5 rounded-2xl border border-slate-700 bg-slate-900 text-slate-50 placeholder:text-slate-400 text-sm outline-none transition-all focus:border-emerald-400"
+                <input id="full-name-input" type="text" placeholder="Your name" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full px-4 py-3.5 rounded-2xl border border-slate-700 bg-slate-900 text-slate-50 placeholder:text-slate-400 text-sm outline-none transition-all focus:border-emerald-400"
                 />
               </div>
             )}
             <div>
               <label className="block text-sm font-medium mb-2 text-slate-200">Email address</label>
-              <input type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)}
+              <input id="auth-email-input" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)}
                 className="w-full px-4 py-3.5 rounded-2xl border border-slate-700 bg-slate-900 text-slate-50 placeholder:text-slate-400 text-sm outline-none transition-all focus:border-emerald-400" />
             </div>
             <div>
@@ -181,7 +186,7 @@ export default function Auth() {
                 <label className="text-sm font-medium text-slate-200">Password</label>
                 {mode === 'login' && <button type="button" className="text-sm text-emerald-400 hover:text-emerald-300" onClick={() => navigate('/auth')}>Forgot password?</button>}
               </div>
-              <input type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)}
+              <input id="auth-password-input" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)}
                 className="w-full px-4 py-3.5 rounded-2xl border border-slate-700 bg-slate-900 text-slate-50 placeholder:text-slate-400 text-sm outline-none transition-all focus:border-emerald-400" />
             </div>
           </div>

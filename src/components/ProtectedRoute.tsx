@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router';
-import { getCurrentUser, setCurrentUser, shouldRedirectToOnboarding, useCurrentUser } from '../lib/auth';
+import { getCurrentUser, hydrateCurrentUser, setCurrentUser, shouldRedirectToOnboarding, useCurrentUser } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 
 export type ProtectedRouteProps = {
@@ -14,6 +14,31 @@ export default function ProtectedRoute({ children, allowedRoles = ['USER', 'TRAV
   const user = useCurrentUser() ?? getCurrentUser();
   const requiresAdmin = allowedRoles.length === 1 && allowedRoles[0] === 'ADMIN';
   const [adminCheck, setAdminCheck] = useState<'checking' | 'allowed' | 'denied'>(requiresAdmin ? 'checking' : 'allowed');
+  const [hydratingProfile, setHydratingProfile] = useState(false);
+
+  useEffect(() => {
+    if (!user || user.onboardingComplete) {
+      setHydratingProfile(false);
+      return;
+    }
+
+    let active = true;
+    setHydratingProfile(true);
+
+    void hydrateCurrentUser(user).then((hydratedUser) => {
+      if (!active) return;
+      setHydratingProfile(false);
+      if (hydratedUser.onboardingComplete && location.pathname === '/onboarding') {
+        window.location.replace('/dashboard');
+      }
+    }).catch(() => {
+      if (active) setHydratingProfile(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [user?.id, user?.onboardingComplete, location.pathname]);
 
   useEffect(() => {
     if (!requiresAdmin || !user) {
@@ -45,6 +70,10 @@ export default function ProtectedRoute({ children, allowedRoles = ['USER', 'TRAV
 
   if (!user) {
     return <Navigate to="/auth" replace state={{ from: location.pathname }} />;
+  }
+
+  if (hydratingProfile) {
+    return <div className="min-h-screen bg-[#0B1220] flex items-center justify-center text-sm text-slate-300">Loading your profile…</div>;
   }
 
   if (shouldRedirectToOnboarding(user) && location.pathname !== '/onboarding') {

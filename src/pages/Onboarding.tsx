@@ -73,8 +73,8 @@ export default function Onboarding() {
                 { label: 'Travel Personality', placeholder: 'Explorer / Backpacker / Luxury Nomad', type: 'text' },
               ].map(field => (
                 <div key={field.label}>
-                  <label className="block text-sm font-medium mb-2">{field.label}</label>
-                  <input type={field.type} placeholder={field.placeholder}
+                  <label htmlFor={`onboarding-${field.label.toLowerCase().replace(/\s+/g, '-')}`} className="block text-sm font-medium mb-2">{field.label}</label>
+                  <input id={`onboarding-${field.label.toLowerCase().replace(/\s+/g, '-')}`} type={field.type} placeholder={field.placeholder}
                     className="w-full px-4 py-3 rounded-xl border text-sm outline-none focus:border-black transition-colors"
                     style={{ borderColor: '#E5E7EB', background: '#FAFAFA' }} />
                 </div>

@@ -114,12 +114,13 @@ export function setCurrentUser(user: AppUser) {
   notifyAuthChange();
 }
 
-async function hydrateUserFromProfile(user: AppUser): Promise<AppUser> {
+export async function hydrateCurrentUser(user: AppUser): Promise<AppUser> {
   if (!supabase) return user;
   const { data, error } = await supabase.from('profiles')
     .select('full_name, avatar_url, role, identity_verified, onboarding_complete')
     .eq('id', user.id)
     .maybeSingle();
+
   if (error || !data) return user;
 
   const hydrated = normalizeAppUser({
@@ -130,8 +131,13 @@ async function hydrateUserFromProfile(user: AppUser): Promise<AppUser> {
     identityVerified: Boolean(data.identity_verified),
     onboardingComplete: Boolean(data.onboarding_complete ?? user.onboardingComplete),
   });
+
   if (hydrated) setCurrentUser(hydrated);
   return hydrated ?? user;
+}
+
+async function hydrateUserFromProfile(user: AppUser): Promise<AppUser> {
+  return hydrateCurrentUser(user);
 }
 
 export function logout() {
