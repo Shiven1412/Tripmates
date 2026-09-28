@@ -32,14 +32,14 @@ export default function Onboarding() {
   const progress = ((step + 1) / STEPS.length) * 100;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-20" style={{ background: '#FAFAFA' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-20 bg-slate-950 text-slate-50">
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="flex items-center gap-2 mb-10">
-          <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center cursor-pointer" onClick={() => navigate('/')}>
-            <span className="text-white text-sm font-bold">T</span>
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center cursor-pointer" onClick={() => navigate('/')}>
+            <span className="text-emerald-300 text-sm font-bold">T</span>
           </div>
-          <span className="font-bold">TripMates</span>
+          <span className="font-bold text-white">TripMates</span>
         </div>
 
         {/* Progress */}
@@ -59,9 +59,9 @@ export default function Onboarding() {
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl p-8 shadow-sm border" style={{ borderColor: '#F3F4F6' }}>
-          <h2 className="font-bold text-2xl mb-1" style={{ letterSpacing: '-0.02em' }}>{STEPS[step].title}</h2>
-          <p className="text-sm mb-8" style={{ color: '#6B7280' }}>{STEPS[step].subtitle}</p>
+        <div className="bg-slate-900/80 rounded-3xl p-8 shadow-sm border border-slate-800">
+          <h2 className="font-bold text-2xl mb-1 text-white" style={{ letterSpacing: '-0.02em' }}>{STEPS[step].title}</h2>
+          <p className="text-sm mb-8 text-slate-300">{STEPS[step].subtitle}</p>
 
           {/* Step 1: Basic Info */}
           {step === 0 && (

@@ -22,7 +22,8 @@ export default function Auth() {
 
   useEffect(() => {
     if (currentUser) {
-      navigate('/dashboard', { replace: true });
+      const destination = currentUser.onboardingComplete ? '/dashboard' : '/onboarding';
+      navigate(destination, { replace: true });
     }
   }, [currentUser, navigate]);
 
@@ -35,7 +36,7 @@ export default function Auth() {
     setIsStartingGoogleAuth(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+      options: { redirectTo: `${window.location.origin}/onboarding` },
     });
     if (error) {
       setAuthError(error.message);
@@ -61,11 +62,12 @@ export default function Auth() {
       return;
     }
 
-    window.location.replace('/dashboard');
+    const destination = result.user?.onboardingComplete ? '/dashboard' : '/onboarding';
+    window.location.replace(destination);
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-slate-950 text-slate-50">
       {/* Left panel - carousel */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
         {CAROUSEL_IMAGES.map((img, i) => (
@@ -122,26 +124,25 @@ export default function Auth() {
       </div>
 
       {/* Right panel */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-16 lg:px-16" style={{ background: '#FAFAFA' }}>
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-16 lg:px-16 bg-slate-950/95">
         <div className="max-w-md w-full mx-auto">
           <div className="flex items-center gap-2 mb-10 lg:hidden cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center">
-              <span className="text-white text-sm font-bold">T</span>
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <span className="text-emerald-300 text-sm font-bold">T</span>
             </div>
-            <span className="font-bold text-lg">TripMates</span>
+            <span className="font-bold text-lg text-white">TripMates</span>
           </div>
 
-          <h1 className="font-bold text-3xl mb-2" style={{ letterSpacing: '-0.02em' }}>
+          <h1 className="font-bold text-3xl mb-2 text-white" style={{ letterSpacing: '-0.02em' }}>
             {mode === 'login' ? 'Welcome back' : 'Join TripMates'}
           </h1>
-          <p className="mb-8" style={{ color: '#6B7280' }}>
+          <p className="mb-8 text-slate-300">
             {mode === 'login' ? 'Sign in to continue your adventure' : 'Find your perfect travel companions'}
           </p>
 
           {/* Social auth */}
           <div className="space-y-3 mb-6">
-            <button className="w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl border font-medium text-sm transition-all hover:bg-gray-50"
-              style={{ borderColor: '#E5E7EB', color: '#374151' }}
+            <button className="w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl border font-medium text-sm transition-all bg-slate-900/80 border-slate-700 text-slate-100 hover:bg-slate-800"
               onClick={() => void handleGoogleSignIn()}
               disabled={isStartingGoogleAuth}>
               <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -154,53 +155,51 @@ export default function Auth() {
             </button>
           </div>
 
-          {authError && <p role="alert" className="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{authError}</p>}
+          {authError && <p role="alert" className="mb-5 rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-300">{authError}</p>}
 
           <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1 h-px" style={{ background: '#E5E7EB' }}></div>
-            <span className="text-xs font-medium" style={{ color: '#9CA3AF' }}>or continue with email</span>
-            <div className="flex-1 h-px" style={{ background: '#E5E7EB' }}></div>
+            <div className="flex-1 h-px bg-slate-700"></div>
+            <span className="text-xs font-medium text-slate-400">or continue with email</span>
+            <div className="flex-1 h-px bg-slate-700"></div>
           </div>
 
           <div className="space-y-4">
             {mode === 'signup' && (
               <div>
-                <label className="block text-sm font-medium mb-2">Full Name</label>
-                <input type="text" placeholder="Your name" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full px-4 py-3.5 rounded-2xl border text-sm outline-none transition-all focus:border-black"
-                  style={{ borderColor: '#E5E7EB', background: 'white' }} />
+                <label className="block text-sm font-medium mb-2 text-slate-200">Full Name</label>
+                <input type="text" placeholder="Your name" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full px-4 py-3.5 rounded-2xl border border-slate-700 bg-slate-900 text-slate-50 placeholder:text-slate-400 text-sm outline-none transition-all focus:border-emerald-400"
+                />
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium mb-2">Email address</label>
+              <label className="block text-sm font-medium mb-2 text-slate-200">Email address</label>
               <input type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)}
-                className="w-full px-4 py-3.5 rounded-2xl border text-sm outline-none transition-all focus:border-black"
-                style={{ borderColor: '#E5E7EB', background: 'white' }} />
+                className="w-full px-4 py-3.5 rounded-2xl border border-slate-700 bg-slate-900 text-slate-50 placeholder:text-slate-400 text-sm outline-none transition-all focus:border-emerald-400" />
             </div>
             <div>
               <div className="flex justify-between mb-2">
-                <label className="text-sm font-medium">Password</label>
-                {mode === 'login' && <button type="button" className="text-sm" style={{ color: '#10B981' }} onClick={() => navigate('/auth')}>Forgot password?</button>}
+                <label className="text-sm font-medium text-slate-200">Password</label>
+                {mode === 'login' && <button type="button" className="text-sm text-emerald-400 hover:text-emerald-300" onClick={() => navigate('/auth')}>Forgot password?</button>}
               </div>
               <input type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)}
-                className="w-full px-4 py-3.5 rounded-2xl border text-sm outline-none transition-all focus:border-black"
-                style={{ borderColor: '#E5E7EB', background: 'white' }} />
+                className="w-full px-4 py-3.5 rounded-2xl border border-slate-700 bg-slate-900 text-slate-50 placeholder:text-slate-400 text-sm outline-none transition-all focus:border-emerald-400" />
             </div>
           </div>
 
-          <button type="button" className="btn-primary w-full justify-center mt-6 py-4 rounded-2xl text-base"
+          <button type="button" className="btn-primary w-full justify-center mt-6 py-4 rounded-2xl text-base bg-emerald-500 hover:bg-emerald-400 text-slate-950"
             onClick={handleSubmit}>
             {mode === 'login' ? 'Sign In →' : 'Create Account →'}
           </button>
 
-          <p className="text-center text-sm mt-6" style={{ color: '#6B7280' }}>
+          <p className="text-center text-sm mt-6 text-slate-300">
             {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
-            <button className="font-semibold underline" style={{ color: '#111111' }}
+            <button className="font-semibold underline text-white"
               onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}>
               {mode === 'login' ? 'Sign up' : 'Sign in'}
             </button>
           </p>
 
-          <p className="text-center text-xs mt-4" style={{ color: '#9CA3AF' }}>
+          <p className="text-center text-xs mt-4 text-slate-400">
             By continuing, you agree to our Terms of Service and Privacy Policy
           </p>
         </div>

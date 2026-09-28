@@ -104,6 +104,10 @@ export function isAuthenticated() {
   return Boolean(getCurrentUser());
 }
 
+export function shouldRedirectToOnboarding(user: AppUser | null) {
+  return Boolean(user && !user.onboardingComplete);
+}
+
 export function setCurrentUser(user: AppUser) {
   if (typeof window === 'undefined') return;
   writeStoredUser(user);

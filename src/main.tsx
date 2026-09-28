@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
 
+const savedTheme = window.localStorage.getItem('tripmates-theme');
+const initialDarkMode = savedTheme ? savedTheme === 'dark' : true;
+document.documentElement.classList.toggle('dark', initialDarkMode);
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then((registration) => {

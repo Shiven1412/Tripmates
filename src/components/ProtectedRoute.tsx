@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router';
-import { getCurrentUser, setCurrentUser, useCurrentUser } from '../lib/auth';
+import { getCurrentUser, setCurrentUser, shouldRedirectToOnboarding, useCurrentUser } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 
 export type ProtectedRouteProps = {
@@ -45,6 +45,10 @@ export default function ProtectedRoute({ children, allowedRoles = ['USER', 'TRAV
 
   if (!user) {
     return <Navigate to="/auth" replace state={{ from: location.pathname }} />;
+  }
+
+  if (shouldRedirectToOnboarding(user) && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace state={{ from: location.pathname }} />;
   }
 
   if (requiresAdmin && adminCheck === 'checking') {

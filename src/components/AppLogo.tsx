@@ -30,7 +30,7 @@ export default function AppLogo({ compact = false, dark = false, className = '' 
 
   return (
     <div className={`inline-flex items-center gap-2.5 ${className}`}>
-      <TripMatesMark size={compact ? 30 : 42} dark={dark} />
+      <TripMatesMark size={compact ? 34 : 42} dark={dark} />
       {!compact && (
         <div className="flex flex-col leading-none">
           <span className="text-sm font-bold tracking-tight sm:text-base" style={{ color: textColor }}>TripMates</span>

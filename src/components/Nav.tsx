@@ -54,7 +54,11 @@ const mobileItems = [
 export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => typeof window !== 'undefined' && window.localStorage.getItem('tripmates-theme') === 'dark');
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const saved = window.localStorage.getItem('tripmates-theme');
+    return saved ? saved === 'dark' : true;
+  });
   const servicesRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   const user = useCurrentUser();
@@ -112,7 +116,7 @@ export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
             <div className="flex flex-1 items-center justify-start">
               <NavLink to="/" aria-label="TripMates home" className="flex items-center gap-2 text-decoration-none">
-                <AppLogo compact dark={!darkMode} className="scale-90" />
+                <AppLogo compact dark={!darkMode} className="scale-110" />
               </NavLink>
             </div>
 
@@ -132,13 +136,13 @@ export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
             <div className="mx-auto flex h-16 max-w-[100vw] items-center justify-between px-4 md:px-6">
               <div className="flex flex-1 items-center justify-start gap-3 md:hidden">
                 <NavLink to="/dashboard" aria-label="TripMates dashboard" className="flex items-center gap-2 text-decoration-none">
-                  <AppLogo compact dark={!darkMode} className="scale-90" />
+                  <AppLogo compact dark={!darkMode} className="scale-110" />
                 </NavLink>
               </div>
 
               <div className="hidden flex-1 items-center justify-start md:flex">
                 <NavLink to="/dashboard" aria-label="TripMates dashboard" className="flex items-center gap-2 text-decoration-none">
-                  <AppLogo compact dark={!darkMode} className="scale-90" />
+                  <AppLogo compact dark={!darkMode} className="scale-110" />
                 </NavLink>
               </div>
 
