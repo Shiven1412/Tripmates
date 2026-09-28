@@ -90,6 +90,7 @@ export default function Onboarding() {
         interests: form.interests,
         budget: form.budget || currentUser.budget,
         groupPreference: form.groupPreference || currentUser.groupPreference,
+        onboardingComplete: true,
         identityVerified: true,
       });
 
@@ -139,20 +140,20 @@ export default function Onboarding() {
           {step === 0 && (
             <div className="space-y-4">
               <div>
-                <label htmlFor="onboarding-full-name" className="block text-sm font-medium mb-2">Full Name</label>
-                <input id="onboarding-full-name" type="text" value={form.fullName} onChange={(e) => handleInput('fullName', e.target.value)} placeholder="Your name" className="w-full px-4 py-3 rounded-xl border text-sm outline-none focus:border-black transition-colors" style={{ borderColor: '#E5E7EB', background: '#FAFAFA' }} />
+                <label htmlFor="onboarding-full-name" className="block text-sm font-medium mb-2 text-slate-200">Full Name</label>
+                <input id="onboarding-full-name" type="text" value={form.fullName} onChange={(e) => handleInput('fullName', e.target.value)} placeholder="Your name" className="w-full px-4 py-3 rounded-xl border text-sm text-white placeholder:text-slate-400 outline-none transition-colors focus:border-emerald-400" style={{ borderColor: '#334155', background: '#0F172A' }} />
               </div>
               <div>
-                <label htmlFor="onboarding-age" className="block text-sm font-medium mb-2">Age</label>
-                <input id="onboarding-age" type="number" value={form.age} onChange={(e) => handleInput('age', e.target.value)} placeholder="24" className="w-full px-4 py-3 rounded-xl border text-sm outline-none focus:border-black transition-colors" style={{ borderColor: '#E5E7EB', background: '#FAFAFA' }} />
+                <label htmlFor="onboarding-age" className="block text-sm font-medium mb-2 text-slate-200">Age</label>
+                <input id="onboarding-age" type="number" value={form.age} onChange={(e) => handleInput('age', e.target.value)} placeholder="24" className="w-full px-4 py-3 rounded-xl border text-sm text-white placeholder:text-slate-400 outline-none transition-colors focus:border-emerald-400" style={{ borderColor: '#334155', background: '#0F172A' }} />
               </div>
               <div>
-                <label htmlFor="onboarding-city" className="block text-sm font-medium mb-2">City</label>
-                <input id="onboarding-city" type="text" value={form.city} onChange={(e) => handleInput('city', e.target.value)} placeholder="City, country" className="w-full px-4 py-3 rounded-xl border text-sm outline-none focus:border-black transition-colors" style={{ borderColor: '#E5E7EB', background: '#FAFAFA' }} />
+                <label htmlFor="onboarding-city" className="block text-sm font-medium mb-2 text-slate-200">City</label>
+                <input id="onboarding-city" type="text" value={form.city} onChange={(e) => handleInput('city', e.target.value)} placeholder="City, country" className="w-full px-4 py-3 rounded-xl border text-sm text-white placeholder:text-slate-400 outline-none transition-colors focus:border-emerald-400" style={{ borderColor: '#334155', background: '#0F172A' }} />
               </div>
               <div>
-                <label htmlFor="onboarding-travel-personality" className="block text-sm font-medium mb-2">Travel Personality</label>
-                <input id="onboarding-travel-personality" type="text" value={form.travelPersonality} onChange={(e) => handleInput('travelPersonality', e.target.value)} placeholder="Explorer / Backpacker / Luxury Nomad" className="w-full px-4 py-3 rounded-xl border text-sm outline-none focus:border-black transition-colors" style={{ borderColor: '#E5E7EB', background: '#FAFAFA' }} />
+                <label htmlFor="onboarding-travel-personality" className="block text-sm font-medium mb-2 text-slate-200">Travel Personality</label>
+                <input id="onboarding-travel-personality" type="text" value={form.travelPersonality} onChange={(e) => handleInput('travelPersonality', e.target.value)} placeholder="Explorer / Backpacker / Luxury Nomad" className="w-full px-4 py-3 rounded-xl border text-sm text-white placeholder:text-slate-400 outline-none transition-colors focus:border-emerald-400" style={{ borderColor: '#334155', background: '#0F172A' }} />
               </div>
             </div>
           )}
@@ -164,7 +165,7 @@ export default function Onboarding() {
                   <label className="block text-sm font-medium mb-3">{item.label}</label>
                   <div className="flex flex-wrap gap-2">
                     {item.options.map((opt) => (
-                      <button key={opt} type="button" className="personality-chip" style={form.lifestyle[item.key] === opt ? { borderColor: '#10B981', background: '#F0FDF4', color: '#059669' } : {}} onClick={() => setForm((prev) => ({ ...prev, lifestyle: { ...prev.lifestyle, [item.key]: opt } }))}>
+                      <button key={opt} type="button" className="personality-chip" style={form.lifestyle[item.key] === opt ? { borderColor: '#10B981', background: '#052E2A', color: '#A7F3D0' } : { borderColor: '#334155', background: '#0F172A', color: '#E2E8F0' }} onClick={() => setForm((prev) => ({ ...prev, lifestyle: { ...prev.lifestyle, [item.key]: opt } }))}>
                         {opt}
                       </button>
                     ))}
@@ -179,7 +180,7 @@ export default function Onboarding() {
               <p className="text-sm mb-4" style={{ color: '#6B7280' }}>Select all that apply</p>
               <div className="flex flex-wrap gap-2">
                 {INTERESTS.map((interest) => (
-                  <button key={interest} type="button" className="personality-chip" style={form.interests.includes(interest) ? { borderColor: '#10B981', background: '#F0FDF4', color: '#059669' } : {}} onClick={() => toggleInterest(interest)}>
+                  <button key={interest} type="button" className="personality-chip" style={form.interests.includes(interest) ? { borderColor: '#10B981', background: '#052E2A', color: '#A7F3D0' } : { borderColor: '#334155', background: '#0F172A', color: '#E2E8F0' }} onClick={() => toggleInterest(interest)}>
                     {interest}
                   </button>
                 ))}
@@ -197,11 +198,11 @@ export default function Onboarding() {
                 { key: 'moderate', label: 'Moderate', desc: '₹3,000 – ₹8,000/day', icon: '🏨' },
                 { key: 'luxury', label: 'Luxury', desc: '₹8,000+/day', icon: '✨' },
               ].map((item) => (
-                <button key={item.key} type="button" className="flex items-center gap-4 p-5 rounded-2xl border-2 text-left transition-all" style={form.budget === item.key ? { borderColor: '#10B981', background: '#F0FDF4' } : { borderColor: '#E5E7EB', background: 'white' }} onClick={() => handleInput('budget', item.key)}>
+                <button key={item.key} type="button" className="flex items-center gap-4 p-5 rounded-2xl border-2 text-left transition-all" style={form.budget === item.key ? { borderColor: '#10B981', background: '#052E2A' } : { borderColor: '#334155', background: '#0F172A' }} onClick={() => handleInput('budget', item.key)}>
                   <span className="text-3xl">{item.icon}</span>
                   <div>
-                    <div className="font-semibold">{item.label}</div>
-                    <div className="text-sm" style={{ color: '#6B7280' }}>{item.desc}</div>
+                    <div className="font-semibold text-slate-100">{item.label}</div>
+                    <div className="text-sm text-slate-300">{item.desc}</div>
                   </div>
                   {form.budget === item.key && <div className="ml-auto w-5 h-5 rounded-full flex items-center justify-center" style={{ background: '#10B981' }}><span className="text-white text-xs">✓</span></div>}
                 </button>
@@ -217,9 +218,9 @@ export default function Onboarding() {
                 { key: 'female', label: 'Female Only', icon: '👩' },
                 { key: 'lgbtq', label: 'LGBTQ+ Friendly', icon: '🏳️‍🌈' },
               ].map((item) => (
-                <button key={item.key} type="button" className="flex flex-col items-center gap-2 p-5 rounded-2xl border-2 transition-all" style={form.groupPreference === item.key ? { borderColor: '#10B981', background: '#F0FDF4' } : { borderColor: '#E5E7EB', background: 'white' }} onClick={() => handleInput('groupPreference', item.key)}>
+                <button key={item.key} type="button" className="flex flex-col items-center gap-2 p-5 rounded-2xl border-2 transition-all" style={form.groupPreference === item.key ? { borderColor: '#10B981', background: '#052E2A' } : { borderColor: '#334155', background: '#0F172A' }} onClick={() => handleInput('groupPreference', item.key)}>
                   <span className="text-3xl">{item.icon}</span>
-                  <span className="text-sm font-medium text-center">{item.label}</span>
+                  <span className="text-sm font-medium text-center text-slate-100">{item.label}</span>
                 </button>
               ))}
             </div>

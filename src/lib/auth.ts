@@ -257,6 +257,7 @@ export async function updateCurrentUserProfile(profile: Partial<AppUser>) {
     ...profile,
     email: profile.email || current.email,
     role: profile.role || current.role,
+    onboardingComplete: profile.onboardingComplete ?? true,
   });
 
   if (!next) {
