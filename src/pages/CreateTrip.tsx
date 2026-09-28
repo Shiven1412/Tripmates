@@ -21,7 +21,49 @@ const tripTypes = ['Backpacking', 'Road Trip', 'Trekking', 'Camping', 'Luxury Tr
 const activityOptions = ['Trekking', 'Camping', 'Bike Ride', 'Road Trip', 'Photography', 'Nightlife', 'Food Tour', 'Sightseeing', 'Boating', 'Scuba Diving', 'Water Sports', 'Cafe Hopping', 'Shopping', 'Wildlife Safari', 'Mountain Climbing'];
 const visibilityOptions = ['Public', 'Private', 'Invite Only'];
 const budgetTypes = ['Budget', 'Moderate', 'Luxury'];
-const defaultDraft = {
+type TripDraft = {
+  title: string;
+  shortDescription: string;
+  coverImage: string;
+  tripType: string;
+  visibility: string;
+  destination: string;
+  country: string;
+  state: string;
+  city: string;
+  meetingPoint: string;
+  startDate: string;
+  endDate: string;
+  budgetType: string;
+  budgetAccommodation: number;
+  budgetTransport: number;
+  budgetFood: number;
+  budgetActivities: number;
+  budgetOther: number;
+  advancePayment: number;
+  groupWallet: boolean;
+  genderPreference: string;
+  foodPreference: string;
+  smokingFriendly: boolean;
+  drinkingFriendly: boolean;
+  partyFriendly: boolean;
+  ageRange: number[];
+  travelPace: string;
+  experienceLevel: string;
+  activities: string[];
+  accommodationType: string;
+  transportType: string;
+  maxMembers: number;
+  rules: string;
+  verificationRequired: boolean;
+  consentRequired: boolean;
+  emergencyContact: boolean;
+  insuranceRecommended: boolean;
+  aadhaarRequired: boolean;
+  faceVerification: boolean;
+};
+
+const defaultDraft: TripDraft = {
   title: '',
   shortDescription: '',
   coverImage: '',

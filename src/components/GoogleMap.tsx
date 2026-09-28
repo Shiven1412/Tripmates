@@ -51,8 +51,11 @@ function loadMapsApi(key: string): Promise<GoogleMapsApi> {
       document.head.appendChild(script);
     } else if (mapWindow.google?.maps) {
       handleLoad();
-    } else if (script.readyState === 'complete') {
-      handleError();
+    } else {
+      const readyState = (script as HTMLScriptElement & { readyState?: string }).readyState;
+      if (readyState === 'complete') {
+        handleError();
+      }
     }
   }).catch((error: unknown) => {
     mapWindow.__tripMatesMapsPromise = undefined;

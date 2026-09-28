@@ -3,7 +3,7 @@ type CacheEntry = { value: unknown; expiresAt: number };
 const cache = new Map<string, CacheEntry>();
 const rateLimitMap = new Map<string, number>();
 
-const safeJsonParse = <T>(value: string | null, fallback: T): T => {
+const safeJsonParse = <T>(value: string | null, fallback: T | null): T | null => {
   if (!value) return fallback;
   try {
     return JSON.parse(value) as T;
@@ -12,17 +12,57 @@ const safeJsonParse = <T>(value: string | null, fallback: T): T => {
   }
 };
 
+const getApiCandidates = () => {
+  const configured = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '';
+  const origin = typeof window !== 'undefined' ? window.location.origin.replace(/\/$/, '') : '';
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+
+  const candidates = new Set<string>();
+  if (import.meta.env.DEV) candidates.add('');
+  if (configured) candidates.add(configured);
+  if (origin) candidates.add(origin);
+
+  const localHosts = new Set(['localhost', '127.0.0.1', '0.0.0.0']);
+  if (!localHosts.has(hostname)) {
+    candidates.add(`http://${hostname}:4000`);
+    candidates.add(`http://${hostname}`);
+  }
+
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0') {
+    candidates.add('http://127.0.0.1:4000');
+    candidates.add('http://localhost:4000');
+  }
+
+  if (origin && !/:(?:5173|4173|3000|8080)$/.test(origin)) {
+    candidates.add(`${origin}:4000`);
+  }
+
+  return [...candidates].filter(Boolean);
+};
+
 async function requestGemini(prompt: string, options: { temperature?: number; maxOutputTokens?: number } = {}): Promise<string> {
-  const apiBase = import.meta.env.VITE_API_URL?.replace(/\/$/, '')
-    || (import.meta.env.DEV ? '' : window.location.origin);
-  const response = await fetch(`${apiBase}/api/ai/generate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt, ...options }),
-  });
-  const result = await response.json().catch(() => ({})) as { text?: string; message?: string };
-  if (!response.ok || !result.text) throw new Error(result.message || 'AI generation failed.');
-  return result.text;
+  const candidates = getApiCandidates();
+  let lastError: Error | null = null;
+
+  for (const apiBase of candidates) {
+    try {
+      const response = await fetch(`${apiBase ? `${apiBase}/api/ai/generate` : '/api/ai/generate'}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, ...options }),
+      });
+      const result = await response.json().catch(() => ({})) as { text?: string; message?: string };
+      if (response.ok && result.text) return result.text;
+
+      const message = result.message || `AI request failed with status ${response.status}.`;
+      lastError = new Error(message);
+      if (response.status >= 500 && apiBase !== candidates.at(-1)) continue;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+    }
+  }
+
+  throw lastError || new Error('AI generation failed.');
 }
 
 const normalizeLocation = (location: string) => location.trim() || 'Goa';
@@ -116,9 +156,17 @@ Requirements:
 - Keep suggestions relevant to travel planning.
 `.trim();
 
-export async function getTripWeatherInsight(location: string, context: Record<string, unknown> = {}): Promise<{ bestSeason: string; weatherSummary: string; nextThreeMonthsForecast: Array<{ month: string; summary: string }>; travelTips: string[]; bestActivities: string[] }> {
+type WeatherInsightShape = {
+  bestSeason: string;
+  weatherSummary: string;
+  nextThreeMonthsForecast: Array<{ month: string; summary: string }>;
+  travelTips: string[];
+  bestActivities: string[];
+};
+
+export async function getTripWeatherInsight(location: string, context: Record<string, unknown> = {}): Promise<WeatherInsightShape> {
   const cacheKey = `weather:${normalizeLocation(location).toLowerCase()}:${JSON.stringify(context)}`;
-  const cached = readCache<typeof fallbackWeather('goa')>(cacheKey, 1000 * 60 * 60 * 6);
+  const cached = readCache<WeatherInsightShape>(cacheKey, 1000 * 60 * 60 * 6);
   if (cached) return cached as never;
 
   if (!withinRateLimit(`weather:${location}`)) {
@@ -135,7 +183,7 @@ export async function getTripWeatherInsight(location: string, context: Record<st
 
   try {
     const content = await requestGemini(buildPrompt(location, context), { temperature: 0.5, maxOutputTokens: 800 });
-    const parsed = safeJsonParse<{ bestSeason?: string; weatherSummary?: string; nextThreeMonthsForecast?: Array<{ month?: string; summary?: string }>; travelTips?: string[]; bestActivities?: string[] }>(content.match(/\{[\s\S]*\}/)?.[0] ?? null, null);
+    const parsed = safeJsonParse<{ bestSeason?: string; weatherSummary?: string; nextThreeMonthsForecast?: Array<{ month?: string; summary?: string }>; travelTips?: string[]; bestActivities?: string[] }>(content.match(/\{[\s\S]*\}/)?.[0] ?? null, null as unknown as { bestSeason?: string; weatherSummary?: string; nextThreeMonthsForecast?: Array<{ month?: string; summary?: string }>; travelTips?: string[]; bestActivities?: string[] } | null);
 
     if (parsed && parsed.bestSeason && parsed.weatherSummary) {
       const normalized = {
@@ -259,7 +307,7 @@ export async function getTravelSuggestion(input: { destination?: string; interes
 
   try {
     const content = await requestGemini(`Return valid JSON only with keys: destination, reason, bestMonth, weather, budget, duration, activities. User profile: ${JSON.stringify(input)}`);
-    const parsed = safeJsonParse<{ destination?: string; reason?: string; bestMonth?: string; weather?: string; budget?: string; duration?: string; activities?: string[] }>(content.match(/\{[\s\S]*\}/)?.[0] ?? '', null);
+    const parsed = safeJsonParse<{ destination?: string; reason?: string; bestMonth?: string; weather?: string; budget?: string; duration?: string; activities?: string[] }>(content.match(/\{[\s\S]*\}/)?.[0] ?? '', null as unknown as { destination?: string; reason?: string; bestMonth?: string; weather?: string; budget?: string; duration?: string; activities?: string[] } | null);
     if (parsed && parsed.destination && parsed.reason) {
       const recommendation = {
         destination: parsed.destination,
@@ -301,7 +349,7 @@ export async function generateTripDescription(input: { destination: string; budg
 
   try {
     const content = await requestGemini(`Return valid JSON only with keys title, summary, highlights, expectations, packing. Destination: ${input.destination}; Budget: ${input.budget}; Duration: ${input.duration}; Activities: ${input.activities.join(', ')}`);
-    const parsed = safeJsonParse<{ title?: string; summary?: string; highlights?: string[]; expectations?: string[]; packing?: string[] }>(content.match(/\{[\s\S]*\}/)?.[0] ?? '', null);
+    const parsed = safeJsonParse<{ title?: string; summary?: string; highlights?: string[]; expectations?: string[]; packing?: string[] }>(content.match(/\{[\s\S]*\}/)?.[0] ?? '', null as unknown as { title?: string; summary?: string; highlights?: string[]; expectations?: string[]; packing?: string[] } | null);
     if (parsed && parsed.title) {
       const result = {
         title: parsed.title,
@@ -341,7 +389,7 @@ export async function generateDestinationInsights(destination: string): Promise<
 
   try {
     const content = await requestGemini(`Return valid JSON only with keys localCuisine, culturalTips, transportTips, safetyTips, nearbyPlaces. Destination: ${destination}`);
-    const parsed = safeJsonParse<{ localCuisine?: string[]; culturalTips?: string[]; transportTips?: string[]; safetyTips?: string[]; nearbyPlaces?: string[] }>(content.match(/\{[\s\S]*\}/)?.[0] ?? '', null);
+    const parsed = safeJsonParse<{ localCuisine?: string[]; culturalTips?: string[]; transportTips?: string[]; safetyTips?: string[]; nearbyPlaces?: string[] }>(content.match(/\{[\s\S]*\}/)?.[0] ?? '', null as unknown as { localCuisine?: string[]; culturalTips?: string[]; transportTips?: string[]; safetyTips?: string[]; nearbyPlaces?: string[] } | null);
     if (parsed && parsed.localCuisine) {
       const result = {
         localCuisine: parsed.localCuisine || fallback.localCuisine,
