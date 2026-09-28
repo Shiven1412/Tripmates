@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useCurrentUser } from '../lib/auth';
 import { fetchPublishedTrips, fetchTripMembershipStatuses, requestToJoinTrip, type PublicTrip } from '../lib/supabaseData';
+import { calculateCompatibility } from '../lib/travelLogic';
 
 const tripDate = (trip: PublicTrip) => {
   if (!trip.start_date) return 'Flexible dates';
@@ -31,18 +32,30 @@ export default function TripHub() {
   }, []);
 
   const getCompatibilityScore = (trip: PublicTrip) => {
-    const profile = currentUser;
-    if (!profile) return 82;
-    const profileInterests = (profile.interests ?? []).map((item) => item.toLowerCase());
-    const tripActivities = (trip.activities ?? []).map((item) => item.toLowerCase());
-    const sharedInterests = tripActivities.filter((activity) => profileInterests.some((interest) => interest.includes(activity) || activity.includes(interest))).length;
-    const styleScore = profile.travelPersonality && trip.trip_type ? (profile.travelPersonality.toLowerCase().includes(trip.trip_type.toLowerCase()) || trip.trip_type.toLowerCase().includes(profile.travelPersonality.toLowerCase())) ? 1 : 0.8 : 0.8;
-    const smokingScore = profile.lifestyle?.smoking === 'Non-smoker' && trip.smoking_friendly === false ? 1 : profile.lifestyle?.smoking === 'Smoker' && trip.smoking_friendly === true ? 1 : 0.75;
-    const drinkingScore = profile.lifestyle?.drinking === 'Social only' && trip.drinking_friendly === true ? 1 : profile.lifestyle?.drinking === 'Not drinking' && trip.drinking_friendly === false ? 1 : 0.75;
-    const budgetValue = Number(trip.budget_accommodation ?? 0) + Number(trip.budget_transport ?? 0) + Number(trip.budget_food ?? 0) + Number(trip.budget_activities ?? 0) + Number(trip.budget_other ?? 0);
-    const budgetScore = profile.budget ? (profile.budget === 'budget' && budgetValue < 15000 ? 1 : profile.budget === 'moderate' && budgetValue < 30000 ? 1 : profile.budget === 'luxury' && budgetValue < 60000 ? 1 : 0.7) : 0.8;
-    const groupPreference = profile.groupPreference === 'mixed' ? 1 : trip.gender_preference === 'Mixed' ? 1 : 0.8;
-    return Math.max(35, Math.min(98, Math.round((sharedInterests / Math.max(1, tripActivities.length || 3)) * 35 + styleScore * 22 + ((smokingScore + drinkingScore) / 2) * 20 + budgetScore * 13 + groupPreference * 10)));
+    if (!currentUser) return 0;
+    const tripBudget = Number(trip.budget_accommodation ?? 0) + Number(trip.budget_transport ?? 0) + Number(trip.budget_food ?? 0) + Number(trip.budget_activities ?? 0) + Number(trip.budget_other ?? 0);
+    const tripBudgetTier = tripBudget < 15000 ? 'budget' : tripBudget < 30000 ? 'moderate' : 'luxury';
+
+    const userProfile = {
+      budget: currentUser.budget || 'moderate',
+      travelStyle: currentUser.travelPersonality || 'Explorer',
+      lifestyle: currentUser.lifestyle || { smoking: 'Non-smoker', drinking: 'Social only', food: 'Non-veg' },
+      interests: currentUser.interests || [],
+    };
+
+    const tripProfile = {
+      budget: tripBudgetTier,
+      travelStyle: trip.trip_type || 'Adventure',
+      lifestyle: {
+        smoking: trip.smoking_friendly ? 'Smoke-friendly' : 'Smoke-free',
+        drinking: trip.drinking_friendly ? 'Alcohol-friendly' : 'Alcohol-free',
+        food: trip.food_preference || 'Any',
+      },
+      interests: trip.activities || [],
+    };
+
+    const score = calculateCompatibility(userProfile, tripProfile);
+    return typeof score === 'number' ? Math.max(0, Math.min(100, score)) : 0;
   };
 
   const requestJoin = async (trip: PublicTrip) => {

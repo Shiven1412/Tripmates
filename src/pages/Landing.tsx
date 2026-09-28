@@ -51,7 +51,7 @@ export default function Landing() {
   }, [user]);
 
   return (
-    <div className="landing-shell w-full overflow-x-clip bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div className="landing-shell w-full overflow-x-clip bg-[#f4f6f5] text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <section className="relative flex min-h-[68vh] w-full flex-col items-center justify-center overflow-hidden pt-16 md:min-h-[72vh]">
         {HERO_IMAGES.map((url, i) => (
           <div
@@ -66,32 +66,21 @@ export default function Landing() {
             }}
           />
         ))}
-        <div className="absolute inset-0 bg-slate-950/65" />
+        <div className="absolute inset-0 bg-slate-950/70" />
 
-        <div className="absolute left-4 top-24 animate-float md:left-16">
-          <div className="rounded-2xl border border-white/20 bg-slate-950/35 px-3 py-2 text-xs font-medium text-white shadow-lg backdrop-blur-sm md:px-4 md:text-sm">
-            🏔️ Trekking to Everest Base Camp
-          </div>
-        </div>
-        <div className="absolute right-4 top-32 animate-float md:right-16">
-          <div className="rounded-2xl border border-white/20 bg-slate-950/35 px-3 py-2 text-xs font-medium text-white shadow-lg backdrop-blur-sm md:px-4 md:text-sm">
-            🌏 Preference-based matching
-          </div>
-        </div>
-
-        <div className="relative z-10 mx-auto max-w-5xl px-4 text-center sm:px-6">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs font-medium text-white/90 backdrop-blur-md md:mb-8 md:text-sm">
+        <div className="relative z-10 mx-auto max-w-5xl px-4 py-6 text-center sm:px-6">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[11px] font-medium tracking-[0.18em] text-white/80 uppercase backdrop-blur-md md:text-xs">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            Meet travelers who share your style
+            Travel with people who match you
           </div>
 
           <div className="mb-5 flex justify-center md:mb-6">
-            <div className="flex items-center justify-center rounded-[22px] border border-white/20 bg-white/10 px-5 py-4 shadow-[0_25px_80px_rgba(15,23,42,0.35)] backdrop-blur-md ring-1 ring-white/10 md:rounded-[28px] md:px-7 md:py-5">
+            <div className="flex items-center justify-center rounded-[22px] border border-white/30 bg-white/10 px-5 py-4 shadow-[0_24px_80px_rgba(15,23,42,0.28)] backdrop-blur-md ring-1 ring-white/10 md:rounded-[28px] md:px-7 md:py-5">
               <AppLogo className="scale-100 md:scale-110" dark={false} />
             </div>
           </div>
 
-          <h1 className="mb-4 font-serif text-white leading-none md:mb-6" style={{ fontSize: 'clamp(2.8rem, 7vw, 6.5rem)', letterSpacing: '-0.04em' }}>
+          <h1 className="mb-4 font-serif text-white leading-[0.96] md:mb-6" style={{ fontSize: 'clamp(2.8rem, 7vw, 6.5rem)', letterSpacing: '-0.04em' }}>
             Travel with People,<br />
             <span style={{ fontStyle: 'italic', color: '#86efac' }}>Not Strangers.</span>
           </h1>

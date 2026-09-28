@@ -130,10 +130,20 @@ export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
         <>
           <nav className="app-navbar fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
             <div className="mx-auto flex h-16 max-w-[100vw] items-center justify-between px-4 md:px-6">
-              <div className="flex flex-1 items-center justify-start gap-3">
+              <div className="flex flex-1 items-center justify-start gap-3 md:hidden">
                 <NavLink to="/dashboard" aria-label="TripMates dashboard" className="flex items-center gap-2 text-decoration-none">
                   <AppLogo compact dark={!darkMode} className="scale-90" />
                 </NavLink>
+              </div>
+
+              <div className="hidden flex-1 items-center justify-start md:flex">
+                <NavLink to="/dashboard" aria-label="TripMates dashboard" className="flex items-center gap-2 text-decoration-none">
+                  <AppLogo compact dark={!darkMode} className="scale-90" />
+                </NavLink>
+              </div>
+
+              <div className="flex flex-1 items-center justify-center md:hidden">
+                <span className="text-base font-semibold tracking-[0.12em] text-slate-700 uppercase">TripMates</span>
               </div>
 
               <div className="hidden flex-1 items-center justify-center gap-2 lg:flex">
@@ -156,9 +166,12 @@ export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
                     aria-expanded={servicesDropdownOpen}
                     aria-haspopup="menu"
                     onClick={() => setServicesDropdownOpen((open) => !open)}
-                    className="service-trigger rounded-xl px-3 py-2 text-sm font-medium text-[#4B5563] transition hover:bg-[#F3F4F6] hover:text-[#111111]"
+                    className="nav-item inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-[#4B5563] transition hover:bg-[#F3F4F6] hover:text-[#111111]"
                   >
-                    Travel Services ▾
+                    <span>Travel Services</span>
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className={`h-4 w-4 transition-transform ${servicesDropdownOpen ? 'rotate-180' : ''}`}>
+                      <path d="M5.5 7.5L10 12l4.5-4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   </button>
 
                   {servicesDropdownOpen && (
@@ -188,9 +201,13 @@ export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
               </div>
 
               <div className="flex flex-1 items-center justify-end gap-2">
-                <button type="button" onClick={() => setDarkMode((mode) => !mode)} className="theme-toggle h-10 w-10 rounded-xl border border-[#E5E7EB] bg-white text-lg" aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`}>{darkMode ? '☀' : '☾'}</button>
-                <button className="btn-primary hidden px-4 py-2 text-sm md:inline-flex" onClick={() => navigate('/create-trip')}>
-                  + Create Trip
+                <button
+                  type="button"
+                  onClick={() => setDarkMode((mode) => !mode)}
+                  className="theme-toggle hidden h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-base shadow-sm md:flex"
+                  aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`}
+                >
+                  {darkMode ? '☀' : '☾'}
                 </button>
 
                 <div className="relative hidden md:block" onMouseEnter={() => setSidebarOpen(true)} onMouseLeave={() => setSidebarOpen(false)}>
@@ -223,7 +240,14 @@ export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
             {menuOpen && (
               <div className="mobile-menu-surface max-h-[70vh] overflow-y-auto border-t border-gray-100 bg-white px-4 py-4 md:hidden">
                 <div className="flex flex-col gap-2">
-                  <button type="button" onClick={() => setDarkMode((mode) => !mode)} className="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium text-[#374151]">Theme <span>{darkMode ? '☀ Light' : '☾ Dark'}</span></button>
+                  <button
+                    type="button"
+                    onClick={() => setDarkMode((mode) => !mode)}
+                    className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700"
+                  >
+                    <span>Theme</span>
+                    <span>{darkMode ? '☀ Light' : '☾ Dark'}</span>
+                  </button>
                   {[...primaryNavItems, ...availableServiceItems].map((item, index) => (
                     <NavLink
                       key={`${item.to}-${item.label}-${index}`}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useCurrentUser } from '../lib/auth';
 import { fetchPublishedTrips, fetchTripMembershipStatuses, requestToJoinTrip, type PublicTrip } from '../lib/supabaseData';
 import { getTripCoverImage } from '../lib/tripImages';
+import { calculateCompatibility } from '../lib/travelLogic';
 
 const STYLES = ['All', 'Trekking', 'Beach', 'Culture', 'Digital Nomad', 'Adventure', 'Nature', 'Road Trip'];
 const GENDER_FILTERS = ['All', 'Mixed', 'Male Only', 'Female Only', 'LGBTQ+ Friendly'];
@@ -73,21 +74,30 @@ export default function DiscoverTrips() {
   };
 
   const getCompatibilityScore = (trip: PublicTrip) => {
-    const profile = currentUser;
-    if (!profile) return 82;
-    const profileInterests = (profile.interests ?? []).map((item) => item.toLowerCase());
-    const tripActivities = (trip.activities ?? []).map((item) => item.toLowerCase());
-    const sharedInterests = tripActivities.filter((activity) => profileInterests.some((interest) => interest.includes(activity) || activity.includes(interest))).length;
-    const styleScore = profile.travelPersonality && trip.trip_type ? (profile.travelPersonality.toLowerCase().includes(trip.trip_type.toLowerCase()) || trip.trip_type.toLowerCase().includes(profile.travelPersonality.toLowerCase())) ? 1 : 0.8 : 0.8;
-    const lifestyleScore = [
-      profile.lifestyle?.smoking === 'Non-smoker' && trip.smoking_friendly === false ? 1 : profile.lifestyle?.smoking === 'Smoker' && trip.smoking_friendly === true ? 1 : 0.75,
-      profile.lifestyle?.drinking === 'Social only' && trip.drinking_friendly === true ? 1 : profile.lifestyle?.drinking === 'Not drinking' && trip.drinking_friendly === false ? 1 : 0.75,
-    ].reduce((sum, value) => sum + value, 0) / 2;
-    const budget = Number(trip.budget_accommodation ?? 0) + Number(trip.budget_transport ?? 0) + Number(trip.budget_food ?? 0) + Number(trip.budget_activities ?? 0) + Number(trip.budget_other ?? 0);
-    const budgetScore = profile.budget ? (profile.budget === 'budget' && budget < 15000 ? 1 : profile.budget === 'moderate' && budget < 30000 ? 1 : profile.budget === 'luxury' && budget < 60000 ? 1 : 0.7) : 0.8;
-    const groupPreference = profile.groupPreference === 'mixed' ? 1 : trip.gender_preference === 'Mixed' ? 1 : 0.8;
-    const score = Math.max(35, Math.min(98, Math.round((sharedInterests / Math.max(1, tripActivities.length || 3)) * 35 + styleScore * 22 + lifestyleScore * 20 + budgetScore * 13 + groupPreference * 10)));
-    return score;
+    if (!currentUser) return 0;
+    const tripBudget = Number(trip.budget_accommodation ?? 0) + Number(trip.budget_transport ?? 0) + Number(trip.budget_food ?? 0) + Number(trip.budget_activities ?? 0) + Number(trip.budget_other ?? 0);
+    const tripBudgetTier = tripBudget < 15000 ? 'budget' : tripBudget < 30000 ? 'moderate' : 'luxury';
+
+    const userProfile = {
+      budget: currentUser.budget || 'moderate',
+      travelStyle: currentUser.travelPersonality || 'Explorer',
+      lifestyle: currentUser.lifestyle || { smoking: 'Non-smoker', drinking: 'Social only', food: 'Non-veg' },
+      interests: currentUser.interests || [],
+    };
+
+    const tripProfile = {
+      budget: tripBudgetTier,
+      travelStyle: trip.trip_type || 'Adventure',
+      lifestyle: {
+        smoking: trip.smoking_friendly ? 'Smoke-friendly' : 'Smoke-free',
+        drinking: trip.drinking_friendly ? 'Alcohol-friendly' : 'Alcohol-free',
+        food: trip.food_preference || 'Any',
+      },
+      interests: trip.activities || [],
+    };
+
+    const score = calculateCompatibility(userProfile, tripProfile);
+    return typeof score === 'number' ? Math.max(0, Math.min(100, score)) : 0;
   };
 
   const requestJoin = async (trip: PublicTrip) => {
@@ -125,10 +135,10 @@ export default function DiscoverTrips() {
               <input value={destination} onChange={(event) => setDestination(event.target.value)} placeholder="Filter by destination" className="min-w-0 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500" />
               <input type="number" min="0" value={budgetLimit} onChange={(event) => setBudgetLimit(event.target.value)} placeholder="Max total budget ₹" className="min-w-0 rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-emerald-500" />
               <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} aria-label="Trips starting on or after" className="min-w-0 rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-emerald-500" />
-              <label className="block text-xs font-semibold text-slate-600">Gender group<select value={genderFilter} onChange={(event) => setGenderFilter(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800"><option>All</option>{GENDER_FILTERS.slice(1).map((option) => <option key={option}>{option}</option>)}</select></label>
-              <label className="block text-xs font-semibold text-slate-600">Smoking<select value={smokingFilter} onChange={(event) => setSmokingFilter(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800"><option>Any</option><option>Smoke-friendly</option><option>Smoke-free</option></select></label>
-              <label className="block text-xs font-semibold text-slate-600">Alcohol<select value={drinkingFilter} onChange={(event) => setDrinkingFilter(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800"><option>Any</option><option>Alcohol-friendly</option><option>Alcohol-free</option></select></label>
-              <label className="block text-xs font-semibold text-slate-600">Food preference<select value={dietFilter} onChange={(event) => setDietFilter(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800">{DIET_FILTERS.map((option) => <option key={option}>{option}</option>)}</select></label>
+              <label className="block text-xs font-semibold text-slate-600">Gender group<select value={genderFilter} onChange={(event) => setGenderFilter(event.target.value)} style={{ appearance: 'none', backgroundImage: 'linear-gradient(45deg, transparent 50%, #64748b 50%), linear-gradient(135deg, #64748b 50%, transparent 50%)', backgroundPosition: 'calc(100% - 16px) calc(50% - 2px), calc(100% - 11px) calc(50% - 2px)', backgroundSize: '5px 5px', backgroundRepeat: 'no-repeat', paddingRight: '2.25rem' }} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800"><option>All</option>{GENDER_FILTERS.slice(1).map((option) => <option key={option}>{option}</option>)}</select></label>
+              <label className="block text-xs font-semibold text-slate-600">Smoking<select value={smokingFilter} onChange={(event) => setSmokingFilter(event.target.value)} style={{ appearance: 'none', backgroundImage: 'linear-gradient(45deg, transparent 50%, #64748b 50%), linear-gradient(135deg, #64748b 50%, transparent 50%)', backgroundPosition: 'calc(100% - 16px) calc(50% - 2px), calc(100% - 11px) calc(50% - 2px)', backgroundSize: '5px 5px', backgroundRepeat: 'no-repeat', paddingRight: '2.25rem' }} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800"><option>Any</option><option>Smoke-friendly</option><option>Smoke-free</option></select></label>
+              <label className="block text-xs font-semibold text-slate-600">Alcohol<select value={drinkingFilter} onChange={(event) => setDrinkingFilter(event.target.value)} style={{ appearance: 'none', backgroundImage: 'linear-gradient(45deg, transparent 50%, #64748b 50%), linear-gradient(135deg, #64748b 50%, transparent 50%)', backgroundPosition: 'calc(100% - 16px) calc(50% - 2px), calc(100% - 11px) calc(50% - 2px)', backgroundSize: '5px 5px', backgroundRepeat: 'no-repeat', paddingRight: '2.25rem' }} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800"><option>Any</option><option>Alcohol-friendly</option><option>Alcohol-free</option></select></label>
+              <label className="block text-xs font-semibold text-slate-600">Food preference<select value={dietFilter} onChange={(event) => setDietFilter(event.target.value)} style={{ appearance: 'none', backgroundImage: 'linear-gradient(45deg, transparent 50%, #64748b 50%), linear-gradient(135deg, #64748b 50%, transparent 50%)', backgroundPosition: 'calc(100% - 16px) calc(50% - 2px), calc(100% - 11px) calc(50% - 2px)', backgroundSize: '5px 5px', backgroundRepeat: 'no-repeat', paddingRight: '2.25rem' }} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800">{DIET_FILTERS.map((option) => <option key={option}>{option}</option>)}</select></label>
             </div>
           </div>
         </div>

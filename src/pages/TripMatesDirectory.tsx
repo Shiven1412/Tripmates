@@ -100,8 +100,8 @@ export default function TripMatesDirectory() {
         </div>
         <div className="mb-5"><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search travelers by name, city, or travel style" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-500 md:max-w-lg" /></div>
         {loading ? <div className="rounded-2xl border bg-white p-10 text-center text-sm text-slate-500">Loading TripMates…</div> : !filtered.length ? <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center"><h2 className="text-xl font-bold">No travelers found</h2><p className="mt-2 text-sm text-slate-500">Try another search or check back when more people join.</p></div> : (
-          <div className="grid gap-4">
-            {filtered.map((person) => {
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{filtered.map((person) => {
               const state = friendships[person.id] ?? 'NONE';
               const tagList = travelerMeta(person);
               const isSelected = selected?.id === person.id;
@@ -114,7 +114,7 @@ export default function TripMatesDirectory() {
                   <div className="mt-4 text-xs font-semibold text-emerald-700">{state === 'FRIENDS' ? '✓ Friend' : state === 'SENT' ? 'Request sent' : state === 'RECEIVED' ? 'Accept request' : 'View profile →'}</div>
                 </button>
                 {isSelected && selected && (
-                  <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-all duration-300 animate-fade-in">
+                  <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-all duration-300 lg:hidden animate-fade-in">
                     {selected.avatar_url ? <img src={selected.avatar_url} alt={`${selected.full_name}'s profile`} className="mb-5 h-52 w-full rounded-2xl bg-slate-100 object-cover object-center" /> : <div className="mb-5 flex h-48 w-full items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-100 to-sky-100 text-7xl font-bold text-emerald-800">{selected.full_name.charAt(0).toUpperCase()}</div>}
                     <div className="flex items-start justify-between gap-3"><div className="flex items-center gap-3">{photo(selected, 'h-12 w-12')}<div><h2 className="text-xl font-bold">{selected.full_name || 'TripMate'}</h2><p className="text-sm text-slate-500">{selected.travel_personality || 'Traveler'}</p></div></div><button type="button" onClick={() => setSelected(null)} aria-label="Close traveler profile" className="rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-50">×</button></div>
                     <div className="mt-3 flex flex-wrap gap-2">{selected.age && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700">{selected.age} years</span>}{selected.city && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700">{selected.city}</span>}{selected.travel_personality && <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">{selected.travel_personality}</span>}{selected.identity_verified ? <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-800">✓ Verified</span> : <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">Not verified</span>}</div>
@@ -127,7 +127,21 @@ export default function TripMatesDirectory() {
                   </div>
                 )}
               </div>;
-            })}
+            })}</div>
+
+            <aside className="hidden h-fit rounded-3xl border border-slate-200 bg-white p-6 lg:block lg:sticky lg:top-20">
+              {selected ? <>
+                {selected.avatar_url ? <img src={selected.avatar_url} alt={`${selected.full_name}'s profile`} className="mb-5 h-64 w-full rounded-2xl bg-slate-100 object-cover object-center" /> : <div className="mb-5 flex h-48 w-full items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-100 to-sky-100 text-7xl font-bold text-emerald-800">{selected.full_name.charAt(0).toUpperCase()}</div>}
+                <div className="flex items-start justify-between gap-3"><div className="flex items-center gap-3">{photo(selected, 'h-12 w-12')}<div><h2 className="text-xl font-bold">{selected.full_name || 'TripMate'}</h2><p className="text-sm text-slate-500">{selected.travel_personality || 'Traveler'}</p></div></div><button type="button" onClick={() => setSelected(null)} aria-label="Close traveler profile" className="rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-50">×</button></div>
+                <div className="mt-3 flex flex-wrap gap-2">{selected.age && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700">{selected.age} years</span>}{selected.city && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700">{selected.city}</span>}{selected.travel_personality && <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">{selected.travel_personality}</span>}{selected.identity_verified ? <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-800">✓ Verified</span> : <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">Not verified</span>}</div>
+                <div className="mt-5 grid grid-cols-2 gap-3">{lifestyleCards.map((card) => <div key={card.label} className="rounded-2xl bg-slate-50 p-3"><div className="text-xs text-slate-500">{card.label}</div><div className="mt-1 font-semibold">{card.value}</div></div>)}</div>
+                <p className="mt-4 text-sm leading-relaxed text-slate-600">{selected.bio || 'This traveler has not added a profile summary yet.'}</p>
+                <div className="mt-4 flex flex-wrap gap-2">{(selected.interests ?? []).map((interest) => <span key={interest} className="tag text-xs">{interest}</span>)}</div>
+                <div className="mt-6 flex items-center justify-between"><h3 className="font-bold">Public trips</h3><span className="text-xs text-slate-500">{profileTrips.length} created</span></div>
+                <div className="mt-3 space-y-2">{profileTrips.length ? profileTrips.map((trip) => <button key={trip.id} onClick={() => navigate(`/trips/${trip.id}`)} className="w-full rounded-xl border border-slate-200 p-3 text-left hover:border-emerald-300"><div className="font-semibold text-sm">{trip.title}</div><div className="mt-1 text-xs text-slate-500">{trip.destination} · {trip.start_date || 'Flexible dates'}</div></button>) : <p className="rounded-xl bg-slate-50 p-3 text-sm text-slate-500">No public trips created yet.</p>}</div>
+                <div className="mt-5">{friendships[selected.id] === 'FRIENDS' ? <button className="btn-primary w-full justify-center py-3" onClick={() => navigate(`/messages?user=${selected.id}`)}>Message friend</button> : friendships[selected.id] === 'RECEIVED' ? <div className="flex gap-2"><button disabled={busy} className="btn-primary flex-1 justify-center py-3 disabled:opacity-50" onClick={() => void actOnRequest(selected, true)}>Accept request</button><button disabled={busy} className="btn-outline flex-1 py-3 disabled:opacity-50" onClick={() => void actOnRequest(selected, false)}>Decline</button></div> : <button disabled={busy || friendships[selected.id] === 'SENT'} className="btn-primary w-full justify-center py-3 disabled:opacity-50" onClick={() => void actOnRequest(selected, true)}>{friendships[selected.id] === 'SENT' ? 'Friend request sent' : busy ? 'Sending…' : 'Send friend request'}</button>}</div>
+              </> : <div className="py-10 text-center text-sm text-slate-500">Choose a TripMate card to view their profile.</div>}
+            </aside>
           </div>
         )}
       </div>

@@ -62,17 +62,26 @@ export function calculateCompatibility(a: CompatibilityInput, b: CompatibilityIn
   const dimensions: number[] = [];
   const budgetA = normalizePreference(a.budget);
   const budgetB = normalizePreference(b.budget);
-  if (budgetA && budgetB) dimensions.push(budgetA === budgetB ? 1 : 0);
+  if (budgetA && budgetB) {
+    const sameBudget = budgetA === budgetB;
+    const adjacentBudget = (budgetA === 'budget' && budgetB === 'moderate') || (budgetA === 'moderate' && budgetB === 'budget') || (budgetA === 'moderate' && budgetB === 'luxury') || (budgetA === 'luxury' && budgetB === 'moderate');
+    dimensions.push(sameBudget ? 1 : adjacentBudget ? 0.8 : 0.6);
+  }
 
   const styleA = normalizePreference(a.travelStyle);
   const styleB = normalizePreference(b.travelStyle);
-  if (styleA && styleB) dimensions.push(styleA === styleB ? 1 : 0);
+  if (styleA && styleB) {
+    const exactMatch = styleA === styleB;
+    const includesMatch = styleA.includes(styleB) || styleB.includes(styleA);
+    dimensions.push(exactMatch ? 1 : includesMatch ? 0.8 : 0.6);
+  }
 
   const interestsA = new Set((a.interests ?? []).map(normalizePreference).filter(Boolean));
   const interestsB = new Set((b.interests ?? []).map(normalizePreference).filter(Boolean));
   if (interestsA.size && interestsB.size) {
     const sharedCount = [...interestsA].filter((interest) => interestsB.has(interest)).length;
-    dimensions.push(sharedCount / new Set([...interestsA, ...interestsB]).size);
+    const uniqueInterests = new Set([...interestsA, ...interestsB]);
+    dimensions.push(uniqueInterests.size ? sharedCount / uniqueInterests.size : 0);
   }
 
   const sharedLifestyleKeys = Object.keys(a.lifestyle ?? {}).filter((key) => {
@@ -87,6 +96,13 @@ export function calculateCompatibility(a: CompatibilityInput, b: CompatibilityIn
 
   if (!dimensions.length) return null;
   return Math.round((dimensions.reduce((total, score) => total + score, 0) / dimensions.length) * 100);
+}
+
+export function calculateTripMatchScore(profile: CompatibilityInput | null | undefined, trip: CompatibilityInput | null | undefined) {
+  if (!profile || !trip) return 0;
+  const score = calculateCompatibility(profile, trip);
+  if (score === null) return 0;
+  return Math.max(0, Math.min(100, score));
 }
 
 function normalizePreference(value?: string | null) {
