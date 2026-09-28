@@ -108,26 +108,35 @@ export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
   return (
     <>
       {!loggedIn ? (
-        <nav className="app-navbar fixed top-0 left-0 right-0 z-50 glass border-b border-white/40">
-          <div className="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
-            <NavLink to="/" aria-label="TripMates home" className="flex items-center gap-2 text-decoration-none">
-              <AppLogo compact dark={!darkMode} className="scale-90" />
-            </NavLink>
+        <nav className="app-navbar fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
+          <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
+            <div className="flex flex-1 items-center justify-start">
+              <NavLink to="/" aria-label="TripMates home" className="flex items-center gap-2 text-decoration-none">
+                <AppLogo compact dark={!darkMode} className="scale-90" />
+              </NavLink>
+            </div>
 
-            <div className="flex items-center gap-2"><button type="button" onClick={() => setDarkMode((mode) => !mode)} className="h-10 w-10 rounded-xl border border-slate-200 bg-white text-lg" aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`}>{darkMode ? '☀' : '☾'}</button><button className="btn-outline py-2 px-5 text-sm" onClick={() => navigate('/auth')}>Sign in</button></div>
+            <div className="hidden md:flex md:flex-1 md:items-center md:justify-center">
+              <span className="text-sm font-semibold tracking-[0.2em] text-slate-700 uppercase">TripMates</span>
+            </div>
+
+            <div className="flex flex-1 items-center justify-end gap-2">
+              <button type="button" onClick={() => setDarkMode((mode) => !mode)} className="h-9 w-9 rounded-xl border border-slate-200 bg-white/80 text-sm shadow-sm md:h-10 md:w-10" aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`}>{darkMode ? '☀' : '☾'}</button>
+              <button className="btn-outline hidden px-3 py-2 text-xs md:inline-flex md:px-5 md:text-sm" onClick={() => navigate('/auth')}>Sign in</button>
+            </div>
           </div>
         </nav>
       ) : (
         <>
-          <nav className="app-navbar fixed top-0 left-0 right-0 z-50 glass border-b border-white/40">
-            <div className="mx-auto flex h-16 max-w-[100vw] items-center justify-between px-4">
-              <div className="flex items-center gap-3">
+          <nav className="app-navbar fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
+            <div className="mx-auto flex h-16 max-w-[100vw] items-center justify-between px-4 md:px-6">
+              <div className="flex flex-1 items-center justify-start gap-3">
                 <NavLink to="/dashboard" aria-label="TripMates dashboard" className="flex items-center gap-2 text-decoration-none">
                   <AppLogo compact dark={!darkMode} className="scale-90" />
                 </NavLink>
               </div>
 
-              <div className="hidden items-center gap-2 lg:flex">
+              <div className="hidden flex-1 items-center justify-center gap-2 lg:flex">
                 {desktopPrimaryNavItems.map((item) => (
                   <NavLink
                     key={item.to}
@@ -178,7 +187,7 @@ export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-1 items-center justify-end gap-2">
                 <button type="button" onClick={() => setDarkMode((mode) => !mode)} className="theme-toggle h-10 w-10 rounded-xl border border-[#E5E7EB] bg-white text-lg" aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`}>{darkMode ? '☀' : '☾'}</button>
                 <button className="btn-primary hidden px-4 py-2 text-sm md:inline-flex" onClick={() => navigate('/create-trip')}>
                   + Create Trip
@@ -202,7 +211,7 @@ export default function Nav({ sidebarOpen, setSidebarOpen }: NavProps) {
 
                 <button
                   type="button"
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E5E7EB] bg-white text-xl text-[#111111] md:hidden"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E5E7EB] bg-slate-900 text-lg text-white shadow-sm md:hidden"
                   onClick={() => setMenuOpen(!menuOpen)}
                   aria-label="Toggle mobile menu"
                 >

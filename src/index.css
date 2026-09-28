@@ -36,6 +36,33 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+html.dark body {
+  background-color: #020817;
+  color: #f8fafc;
+}
+
+html.dark .glass {
+  background: rgba(15, 23, 42, 0.8);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+html.dark .mobile-menu-surface,
+html.dark .nav-menu-surface,
+html.dark .rounded-3xl,
+html.dark .rounded-2xl,
+html.dark .bg-white {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+
+html.dark .text-slate-600,
+html.dark .text-slate-500,
+html.dark .text-slate-700,
+html.dark .text-slate-800,
+html.dark .text-slate-900 {
+  color: #cbd5e1 !important;
+}
+
 button, input, textarea, select { font: inherit; }
 
 #root { width: 100%; min-height: 100vh; }

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { createBrowserRouter, Outlet } from 'react-router';
+import { useEffect, useState } from 'react';
+import { createBrowserRouter, Outlet, useLocation } from 'react-router';
 import Footer from './components/Footer';
 import Nav from './components/Nav';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -31,6 +31,11 @@ import FloatingAIChat from './components/FloatingAIChat';
 
 function Root() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  }, [location.pathname]);
 
   return (
     <div>

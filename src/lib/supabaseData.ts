@@ -494,8 +494,41 @@ export async function confirmExpensePayment(expenseId: string, userId: string) {
   if (!supabase) return { error: new Error('Supabase is not configured.') };
   const { data: authData, error: authError } = await supabase.auth.getUser();
   if (authError || !authData.user) return { error: new Error('Sign in to confirm payment.') };
+
+  if (authData.user.id === userId) {
+    return { error: new Error('The payer cannot confirm their own payment.') };
+  }
+
+  const { data: expense, error: expenseError } = await supabase
+    .from('trip_expenses')
+    .select('paid_by, trip_id')
+    .eq('id', expenseId)
+    .single();
+
+  if (expenseError || !expense) {
+    return { error: expenseError ?? new Error('Expense not found.') };
+  }
+
+  const isPayer = authData.user.id === expense.paid_by;
+  const { data: trip, error: tripError } = await supabase
+    .from('trips')
+    .select('created_by')
+    .eq('id', expense.trip_id)
+    .single();
+
+  if (tripError || !trip) {
+    return { error: tripError ?? new Error('Trip not found.') };
+  }
+
+  const isTripOwner = authData.user.id === trip.created_by;
+  if (!isPayer && !isTripOwner) {
+    return { error: new Error('Only the payer or trip owner can confirm payment.') };
+  }
+
   const { error } = await supabase.from('trip_expense_shares').update({ status: 'PAID' })
-    .eq('expense_id', expenseId).eq('user_id', userId).eq('status', 'PAYMENT_REPORTED');
+    .eq('expense_id', expenseId)
+    .eq('user_id', userId)
+    .eq('status', 'PAYMENT_REPORTED');
   return { error };
 }
 

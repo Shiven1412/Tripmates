@@ -51,8 +51,8 @@ export default function Landing() {
   }, [user]);
 
   return (
-    <div className="landing-shell w-full overflow-x-clip bg-slate-50 text-slate-900">
-      <section className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden">
+    <div className="landing-shell w-full overflow-x-clip bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      <section className="relative flex min-h-[68vh] w-full flex-col items-center justify-center overflow-hidden pt-16 md:min-h-[72vh]">
         {HERO_IMAGES.map((url, i) => (
           <div
             key={url}
@@ -66,55 +66,55 @@ export default function Landing() {
             }}
           />
         ))}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.65) 100%)' }} />
+        <div className="absolute inset-0 bg-slate-950/65" />
 
-        <div className="absolute left-6 top-24 animate-float md:left-16">
-          <div className="rounded-2xl border border-white/30 bg-white/15 px-4 py-2.5 text-sm font-medium text-white shadow-lg backdrop-blur-sm">
+        <div className="absolute left-4 top-24 animate-float md:left-16">
+          <div className="rounded-2xl border border-white/20 bg-slate-950/35 px-3 py-2 text-xs font-medium text-white shadow-lg backdrop-blur-sm md:px-4 md:text-sm">
             🏔️ Trekking to Everest Base Camp
           </div>
         </div>
-        <div className="absolute right-6 top-32 animate-float md:right-16">
-          <div className="rounded-2xl border border-white/30 bg-white/15 px-4 py-2.5 text-sm font-medium text-white shadow-lg backdrop-blur-sm">
-            🌏 Preference-based traveler matching
+        <div className="absolute right-4 top-32 animate-float md:right-16">
+          <div className="rounded-2xl border border-white/20 bg-slate-950/35 px-3 py-2 text-xs font-medium text-white shadow-lg backdrop-blur-sm md:px-4 md:text-sm">
+            🌏 Preference-based matching
           </div>
         </div>
 
-        <div className="relative z-10 mx-auto max-w-5xl px-6 text-center">
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-md">
-            <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+        <div className="relative z-10 mx-auto max-w-5xl px-4 text-center sm:px-6">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs font-medium text-white/90 backdrop-blur-md md:mb-8 md:text-sm">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
             Meet travelers who share your style
           </div>
 
-          <div className="mb-6 flex justify-center">
-            <div className="flex items-center justify-center rounded-[28px] border border-white/20 bg-white/10 px-7 py-5 shadow-[0_25px_80px_rgba(15,23,42,0.35)] backdrop-blur-md ring-1 ring-white/10">
-              <AppLogo className="scale-110 md:scale-125" dark={false} />
+          <div className="mb-5 flex justify-center md:mb-6">
+            <div className="flex items-center justify-center rounded-[22px] border border-white/20 bg-white/10 px-5 py-4 shadow-[0_25px_80px_rgba(15,23,42,0.35)] backdrop-blur-md ring-1 ring-white/10 md:rounded-[28px] md:px-7 md:py-5">
+              <AppLogo className="scale-100 md:scale-110" dark={false} />
             </div>
           </div>
 
-          <h1 className="mb-6 font-serif text-white leading-none" style={{ fontSize: 'clamp(3rem, 8vw, 7rem)', letterSpacing: '-0.02em' }}>
+          <h1 className="mb-4 font-serif text-white leading-none md:mb-6" style={{ fontSize: 'clamp(2.8rem, 7vw, 6.5rem)', letterSpacing: '-0.04em' }}>
             Travel with People,<br />
             <span style={{ fontStyle: 'italic', color: '#86efac' }}>Not Strangers.</span>
           </h1>
 
-          <p className="mx-auto mb-10 max-w-xl text-lg font-light leading-relaxed text-white/80 md:text-xl">
+          <p className="mx-auto mb-7 max-w-xl text-sm font-light leading-relaxed text-slate-200 md:mb-10 md:text-xl">
             Join verified travelers who share your style, budget, interests, and personality.
           </p>
 
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
-            <button className="btn-green px-8 py-4 text-base" onClick={() => navigate(isAuthenticated() ? '/discover' : '/auth')}>
-              Find My Group →
+            <button className="btn-green px-6 py-3.5 text-sm md:px-8 md:py-4 md:text-base" onClick={() => navigate(isAuthenticated() ? '/discover' : '/auth')}>
+              Find your next trip →
             </button>
-            <button className="btn-outline px-8 py-4 text-base" style={{ borderColor: 'rgba(255,255,255,0.5)', color: 'white' }} onClick={() => navigate(isAuthenticated() ? '/create-trip' : '/auth')}>
-              Create A Trip
+            <button className="btn-outline border border-white/30 bg-white/5 px-6 py-3.5 text-sm text-white shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur-sm hover:bg-white hover:text-slate-950 md:px-8 md:py-4 md:text-base" onClick={() => navigate(isAuthenticated() ? '/ai-assistant' : '/auth')}>
+              Ask TripMates AI
             </button>
           </div>
 
-          <p className="mt-6 cursor-pointer text-sm text-white/50 transition-colors hover:text-white/70" onClick={() => document.getElementById('destinations')?.scrollIntoView({ behavior: 'smooth' })}>
+          <p className="mt-6 cursor-pointer text-xs text-white/60 transition-colors hover:text-white/80 md:text-sm" onClick={() => document.getElementById('destinations')?.scrollIntoView({ behavior: 'smooth' })}>
             ↓ Explore Destinations
           </p>
         </div>
 
-        <div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 gap-2">
+        <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2 md:bottom-8">
           {HERO_IMAGES.map((_, i) => (
             <button key={i} onClick={() => setHeroIdx(i)} className="rounded-full transition-all" style={{ width: i === heroIdx ? 24 : 8, height: 8, background: i === heroIdx ? '#10B981' : 'rgba(255,255,255,0.4)' }} />
           ))}

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useCurrentUser } from '../lib/auth';
 import { fetchPublishedTrips, fetchTripMembershipStatuses, requestToJoinTrip, type PublicTrip } from '../lib/supabaseData';
 import { getTripCoverImage } from '../lib/tripImages';
 
@@ -17,6 +18,7 @@ const tripDate = (trip: PublicTrip) => {
 
 export default function DiscoverTrips() {
   const navigate = useNavigate();
+  const currentUser = useCurrentUser();
   const [trips, setTrips] = useState<PublicTrip[]>([]);
   const [memberships, setMemberships] = useState<Record<string, 'APPROVED' | 'PENDING'>>({});
   const [activeStyle, setActiveStyle] = useState('All');
@@ -28,6 +30,7 @@ export default function DiscoverTrips() {
   const [smokingFilter, setSmokingFilter] = useState('Any');
   const [drinkingFilter, setDrinkingFilter] = useState('Any');
   const [dietFilter, setDietFilter] = useState('Any');
+  const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
   const [requestingId, setRequestingId] = useState('');
 
@@ -69,6 +72,24 @@ export default function DiscoverTrips() {
     setDietFilter('Any');
   };
 
+  const getCompatibilityScore = (trip: PublicTrip) => {
+    const profile = currentUser;
+    if (!profile) return 82;
+    const profileInterests = (profile.interests ?? []).map((item) => item.toLowerCase());
+    const tripActivities = (trip.activities ?? []).map((item) => item.toLowerCase());
+    const sharedInterests = tripActivities.filter((activity) => profileInterests.some((interest) => interest.includes(activity) || activity.includes(interest))).length;
+    const styleScore = profile.travelPersonality && trip.trip_type ? (profile.travelPersonality.toLowerCase().includes(trip.trip_type.toLowerCase()) || trip.trip_type.toLowerCase().includes(profile.travelPersonality.toLowerCase())) ? 1 : 0.8 : 0.8;
+    const lifestyleScore = [
+      profile.lifestyle?.smoking === 'Non-smoker' && trip.smoking_friendly === false ? 1 : profile.lifestyle?.smoking === 'Smoker' && trip.smoking_friendly === true ? 1 : 0.75,
+      profile.lifestyle?.drinking === 'Social only' && trip.drinking_friendly === true ? 1 : profile.lifestyle?.drinking === 'Not drinking' && trip.drinking_friendly === false ? 1 : 0.75,
+    ].reduce((sum, value) => sum + value, 0) / 2;
+    const budget = Number(trip.budget_accommodation ?? 0) + Number(trip.budget_transport ?? 0) + Number(trip.budget_food ?? 0) + Number(trip.budget_activities ?? 0) + Number(trip.budget_other ?? 0);
+    const budgetScore = profile.budget ? (profile.budget === 'budget' && budget < 15000 ? 1 : profile.budget === 'moderate' && budget < 30000 ? 1 : profile.budget === 'luxury' && budget < 60000 ? 1 : 0.7) : 0.8;
+    const groupPreference = profile.groupPreference === 'mixed' ? 1 : trip.gender_preference === 'Mixed' ? 1 : 0.8;
+    const score = Math.max(35, Math.min(98, Math.round((sharedInterests / Math.max(1, tripActivities.length || 3)) * 35 + styleScore * 22 + lifestyleScore * 20 + budgetScore * 13 + groupPreference * 10)));
+    return score;
+  };
+
   const requestJoin = async (trip: PublicTrip) => {
     setRequestingId(trip.id);
     const result = await requestToJoinTrip(trip.id);
@@ -85,17 +106,30 @@ export default function DiscoverTrips() {
           <button className="btn-primary px-5 py-3 text-sm" onClick={() => navigate('/create-trip')}>+ Publish a trip</button>
         </div>
 
-        <div className="mb-5 rounded-3xl border border-slate-200 bg-white p-4 md:p-5">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><div><h2 className="text-sm font-bold text-slate-800">Find your kind of trip</h2><p className="mt-0.5 text-xs text-slate-500">Filter by activities, group preferences, and food.</p></div><button type="button" onClick={clearFilters} className="rounded-full px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50">Clear filters</button></div>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title, activities, organizer…" className="min-w-0 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500" />
-            <input value={destination} onChange={(event) => setDestination(event.target.value)} placeholder="Filter by destination" className="min-w-0 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500" />
-            <input type="number" min="0" value={budgetLimit} onChange={(event) => setBudgetLimit(event.target.value)} placeholder="Max total budget ₹" className="min-w-0 rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-emerald-500" />
-            <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} aria-label="Trips starting on or after" className="min-w-0 rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-emerald-500" />
-            <label className="block text-xs font-semibold text-slate-600">Gender group<select value={genderFilter} onChange={(event) => setGenderFilter(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800"><option>All</option>{GENDER_FILTERS.slice(1).map((option) => <option key={option}>{option}</option>)}</select></label>
-            <label className="block text-xs font-semibold text-slate-600">Smoking<select value={smokingFilter} onChange={(event) => setSmokingFilter(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800"><option>Any</option><option>Smoke-friendly</option><option>Smoke-free</option></select></label>
-            <label className="block text-xs font-semibold text-slate-600">Alcohol<select value={drinkingFilter} onChange={(event) => setDrinkingFilter(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800"><option>Any</option><option>Alcohol-friendly</option><option>Alcohol-free</option></select></label>
-            <label className="block text-xs font-semibold text-slate-600">Food preference<select value={dietFilter} onChange={(event) => setDietFilter(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800">{DIET_FILTERS.map((option) => <option key={option}>{option}</option>)}</select></label>
+        <div className="mb-5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-bold text-slate-800">Find your kind of trip</h2>
+              <p className="mt-0.5 text-xs text-slate-500">Filter by activities, group preferences, and food.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={() => setShowFilters((value) => !value)} className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 md:hidden">
+                Filters {showFilters ? '▲' : '▼'}
+              </button>
+              <button type="button" onClick={clearFilters} className="rounded-full px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50">Clear filters</button>
+            </div>
+          </div>
+          <div className={`overflow-hidden transition-all duration-300 ease-out ${showFilters || window.innerWidth >= 768 ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0 md:max-h-[1200px] md:opacity-100'}`}>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title, activities, organizer…" className="min-w-0 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500" />
+              <input value={destination} onChange={(event) => setDestination(event.target.value)} placeholder="Filter by destination" className="min-w-0 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500" />
+              <input type="number" min="0" value={budgetLimit} onChange={(event) => setBudgetLimit(event.target.value)} placeholder="Max total budget ₹" className="min-w-0 rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-emerald-500" />
+              <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} aria-label="Trips starting on or after" className="min-w-0 rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-emerald-500" />
+              <label className="block text-xs font-semibold text-slate-600">Gender group<select value={genderFilter} onChange={(event) => setGenderFilter(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800"><option>All</option>{GENDER_FILTERS.slice(1).map((option) => <option key={option}>{option}</option>)}</select></label>
+              <label className="block text-xs font-semibold text-slate-600">Smoking<select value={smokingFilter} onChange={(event) => setSmokingFilter(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800"><option>Any</option><option>Smoke-friendly</option><option>Smoke-free</option></select></label>
+              <label className="block text-xs font-semibold text-slate-600">Alcohol<select value={drinkingFilter} onChange={(event) => setDrinkingFilter(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800"><option>Any</option><option>Alcohol-friendly</option><option>Alcohol-free</option></select></label>
+              <label className="block text-xs font-semibold text-slate-600">Food preference<select value={dietFilter} onChange={(event) => setDietFilter(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800">{DIET_FILTERS.map((option) => <option key={option}>{option}</option>)}</select></label>
+            </div>
           </div>
         </div>
         <div className="mb-6 flex flex-wrap gap-2">{STYLES.map((style) => <button key={style} onClick={() => setActiveStyle(style)} className={`rounded-full border px-4 py-2 text-sm font-medium ${activeStyle === style ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-600'}`}>{style}</button>)}</div>
@@ -106,9 +140,14 @@ export default function DiscoverTrips() {
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{filteredTrips.map((trip) => {
             const budget = Number(trip.budget_accommodation ?? 0) + Number(trip.budget_transport ?? 0) + Number(trip.budget_food ?? 0) + Number(trip.budget_activities ?? 0) + Number(trip.budget_other ?? 0);
             const status = memberships[trip.id];
+            const compatibility = getCompatibilityScore(trip);
             return <article key={trip.id} className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
               <div className="group relative h-48 overflow-hidden bg-slate-200"><img src={trip.cover_image || getTripCoverImage(trip.destination, trip.trip_type)} alt={`${trip.destination} travel`} className="h-full w-full object-cover transition duration-500 group-hover:scale-105"/><div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"/><span className="absolute bottom-3 left-4 text-sm font-semibold text-white">Explore {trip.destination}</span></div>
               <div className="p-5"><div className="mb-2 flex items-start justify-between gap-2"><h2 className="text-lg font-bold">{trip.title}</h2><span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">{trip.trip_type || 'Trip'}</span></div>
+                <div className="mb-3 flex items-center justify-between gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-2.5 py-2">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Compatibility</span>
+                  <span className={`text-sm font-bold ${compatibility >= 80 ? 'text-emerald-700' : compatibility >= 60 ? 'text-amber-600' : 'text-red-600'}`}>{compatibility}%</span>
+                </div>
                 <p className="text-sm text-slate-600">📍 {trip.destination}</p><p className="mt-1 text-sm text-slate-500">📅 {tripDate(trip)}</p>
                 {trip.description && <p className="mt-3 line-clamp-2 text-sm text-slate-600">{trip.description}</p>}
                 <div className="mt-3 flex flex-wrap gap-1.5" aria-label="Trip group preferences">
