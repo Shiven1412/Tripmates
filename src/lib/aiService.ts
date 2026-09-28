@@ -16,6 +16,7 @@ const getApiCandidates = () => {
   const configured = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '';
   const origin = typeof window !== 'undefined' ? window.location.origin.replace(/\/$/, '') : '';
   const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+  const protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:';
 
   const candidates = new Set<string>();
   if (import.meta.env.DEV) candidates.add('');
@@ -23,21 +24,27 @@ const getApiCandidates = () => {
   if (origin) candidates.add(origin);
 
   const localHosts = new Set(['localhost', '127.0.0.1', '0.0.0.0']);
-  if (!localHosts.has(hostname)) {
+  if (!localHosts.has(hostname) && protocol !== 'https:') {
     candidates.add(`http://${hostname}:4000`);
     candidates.add(`http://${hostname}`);
   }
 
-  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0') {
+  if ((hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0') && protocol !== 'https:') {
     candidates.add('http://127.0.0.1:4000');
     candidates.add('http://localhost:4000');
   }
 
-  if (origin && !/:(?:5173|4173|3000|8080)$/.test(origin)) {
-    candidates.add(`${origin}:4000`);
+  if (origin && protocol !== 'https:') {
+    if (!/:(?:5173|4173|3000|8080)$/.test(origin)) {
+      candidates.add(`${origin}:4000`);
+    }
   }
 
-  return [...candidates].filter(Boolean);
+  return [...candidates].filter((candidate) => {
+    if (!candidate) return true;
+    if (protocol === 'https:' && candidate.startsWith('http://')) return false;
+    return true;
+  });
 };
 
 async function requestGemini(prompt: string, options: { temperature?: number; maxOutputTokens?: number } = {}): Promise<string> {
